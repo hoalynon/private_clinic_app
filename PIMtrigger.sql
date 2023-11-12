@@ -393,7 +393,7 @@ declare
 begin
     SELECT COUNT(MAHD) INTO dem FROM HOADONVIENPHI ORDER BY MAHD DESC;
     IF (dem = 0) THEN
-        insert into hoadonvienphi values ('HD001', :new.maca, current_timestamp, 0, 0, 0, 0, '');
+        insert into hoadonvienphi values ('HD001', :new.MaCa, current_timestamp, 0, 0, 0, 0, '');
     ELSE
         SELECT A.MAHD INTO mahdgannhat FROM 
         ( SELECT B.* FROM (SELECT * FROM HOADONVIENPHI ORDER BY MAHD DESC) B WHERE ROWNUM = 1) A;
@@ -403,6 +403,6 @@ begin
         ELSIF (stt < 100) THEN
             phandem := '0';
         END IF;
-        insert into hoadonvienphi values ('HD' || phandem || to_char(stt), :new.maca, current_timestamp, 0, 0, 0, 0, '');
+        insert into hoadonvienphi values ('HD' || phandem || to_char(stt), :new.MaCa, current_timestamp, 0, 0, 0, 0, '');
     END IF;
 end;
