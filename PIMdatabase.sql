@@ -55,7 +55,9 @@ create table benh
     mabenh varchar(50),
     tenbenh varchar2(100) NOT NULL,
     tenkhoa varchar(50) NOT NULL,
+    gia integer NOT NULL,
     constraint pk_benh primary key (mabenh),
+    constraint ck_gia check (gia >= 0),
     CONSTRAINT CK_BENH_TENKHOA CHECK(TENKHOA IN ('Hoi Suc Cap Cuu', 'Noi Tong Hop', 'Noi Tim Mach', 'Noi Tieu Hoa', 'Noi Co-Xuong-Khop', 'Noi Than-Tiet Nieu','Noi Tiet','Di Ung','Truyen Nhiem','Lao','Da Lieu','Than Kinh', 'Tam Than','Y Hoc Co Truyen','Nhi','Ngoai Tong Hop','Chan Thuong Chinh Hinh','Bong','Phu San','Tai-Mui-Hong','Rang-Ham-Mat','Mat','Vat Ly Tri Lieu','Y Hoc Hat Nhat','Truyen Mau','Loc Mau','Hoa Sinh','Vi Sinh','Chuan Doan Hinh Anh','Noi Soi','Duoc','Dinh Duong','Cap Cuu','Ung Buou'))
 );
 
@@ -69,7 +71,9 @@ create table phongbenh
     lau number,
     succhua number NOT NULL,
     controng number,
-    constraint pk_phongbenh primary key (maphong)
+    gia1ngay integer,
+    constraint pk_phongbenh primary key (maphong),
+    constraint ck_gia1ngay check (gia1ngay >= 0)
 );
 commit;
 
@@ -85,6 +89,7 @@ create table cabenh
     ngayketthuc timestamp,
     tinhtrang varchar(20) CHECK (tinhtrang IN ('Trieu chung','Chuan doan','Dieu tri','Giam sat','Cham soc','Da ket thuc')),
     maphong varchar(10),
+    ngaychuyengannhat timestamp,
     constraint pk_cabenh primary key (mabn,mabs,mabenh,ngaybatdau),
     constraint fk_cabenh_mabn foreign key (mabn) references benhnhan(mabn),
     constraint fk_cabenh_mabs foreign key (mabs) references bacsi(mabs),
@@ -102,7 +107,9 @@ create table thietbiyte
     congdung varchar2(200),
     sltong number NOT NULL,
     slconlai number,
-    constraint pk_thietbiyte primary key (mathietbi)
+    gia integer,
+    constraint pk_thietbiyte primary key (mathietbi),
+    constraint ck_gia check (gia >= 0)
 );
 
 commit;
@@ -122,6 +129,33 @@ create table dieuphoithietbi
 commit;
 
 create table taikhoan
+(
+    tendangnhap varchar(10),
+    matkhau varchar(100),
+    constraint pk_taikhoan primary key (tendangnhap)
+);
+
+commit;
+
+create table thuoc
+(
+    tendangnhap varchar(10),
+    matkhau varchar(100),
+    constraint pk_taikhoan primary key (tendangnhap)
+);
+
+commit;
+
+create table kethuoc
+(
+    tendangnhap varchar(10),
+    matkhau varchar(100),
+    constraint pk_taikhoan primary key (tendangnhap)
+);
+
+commit;
+
+create table hoadonvienphi
 (
     tendangnhap varchar(10),
     matkhau varchar(100),
@@ -206,104 +240,104 @@ INSERT INTO BENHNHAN VALUES ('BN050', 'Nguyen Van Tu', 'Nam', '03/01/1989', '61 
 
 commit;
 
-INSERT INTO BENH VALUES ('BE001', 'Viem Tai', 'Nhi');
-INSERT INTO BENH VALUES ('BE002', 'Viem Thanh Quan', 'Nhi');
-INSERT INTO BENH VALUES ('BE003', 'Soi', 'Nhi');
-INSERT INTO BENH VALUES ('BE004', 'Dau Mat Do', 'Nhi');
-INSERT INTO BENH VALUES ('BE005', 'Thuy Dau', 'Nhi');
-INSERT INTO BENH VALUES ('BE006', 'Sot Ret', 'Truyen Nhiem');
-INSERT INTO BENH VALUES ('BE007', 'Cum', 'Truyen Nhiem');
-INSERT INTO BENH VALUES ('BE008', 'Sot Xuat Huyet', 'Truyen Nhiem');
-INSERT INTO BENH VALUES ('BE009', 'Covid 19', 'Truyen Nhiem');
-INSERT INTO BENH VALUES ('BE010', 'Dich Hach', 'Truyen Nhiem');
-INSERT INTO BENH VALUES ('BE011', 'Dot Quy', 'Cap Cuu');
-INSERT INTO BENH VALUES ('BE012', 'Nhoi Mau Co Tim', 'Cap Cuu');
-INSERT INTO BENH VALUES ('BE013', 'Chan Thuong So Nao', 'Cap Cuu');
-INSERT INTO BENH VALUES ('BE014', 'Bong', 'Cap Cuu');
-INSERT INTO BENH VALUES ('BE015', 'Ngo Doc', 'Cap Cuu');
-INSERT INTO BENH VALUES ('BE016', 'Ung Thu Da Day', 'Ung Buou');
-INSERT INTO BENH VALUES ('BE017', 'Ung Thu Da', 'Ung Buou');
-INSERT INTO BENH VALUES ('BE018', 'Ung Thu Gan', 'Ung Buou');
-INSERT INTO BENH VALUES ('BE019', 'Ung Thu Phoi', 'Ung Buou');
-INSERT INTO BENH VALUES ('BE020', 'Ung Thu Vu', 'Ung Buou');
-INSERT INTO BENH VALUES ('BE021', 'Viem Tui Mat', 'Noi Soi');
-INSERT INTO BENH VALUES ('BE022', 'Cat Amidan', 'Noi Soi');
-INSERT INTO BENH VALUES ('BE023', 'Cat Ruot Thua', 'Noi Soi');
-INSERT INTO BENH VALUES ('BE024', 'Soi Than', 'Noi Soi');
-INSERT INTO BENH VALUES ('BE025', 'Thoat Vi Dia Dem', 'Noi Soi');
+INSERT INTO BENH VALUES ('BE001', 'Tai Mui Hong', 'Nhi', 400000);
+INSERT INTO BENH VALUES ('BE002', 'Viem Thanh Quan', 'Nhi', 550000);
+INSERT INTO BENH VALUES ('BE003', 'Soi', 'Nhi', 250000);
+INSERT INTO BENH VALUES ('BE004', 'Dau Mat Do', 'Nhi', 350000);
+INSERT INTO BENH VALUES ('BE005', 'Thuy Dau', 'Nhi', 300000);
+INSERT INTO BENH VALUES ('BE006', 'Sot Ret', 'Truyen Nhiem', 500000);
+INSERT INTO BENH VALUES ('BE007', 'Cum', 'Truyen Nhiem', 350000);
+INSERT INTO BENH VALUES ('BE008', 'Sot Xuat Huyet', 'Truyen Nhiem', 657000);
+INSERT INTO BENH VALUES ('BE009', 'Covid 19', 'Truyen Nhiem', 200000);
+INSERT INTO BENH VALUES ('BE010', 'Dich Hach', 'Truyen Nhiem', 250000);
+INSERT INTO BENH VALUES ('BE011', 'Dot Quy', 'Cap Cuu', 5800000);
+INSERT INTO BENH VALUES ('BE012', 'Nhoi Mau Co Tim', 'Cap Cuu', 1600000);
+INSERT INTO BENH VALUES ('BE013', 'Chan Thuong So Nao', 'Cap Cuu', 3300000);
+INSERT INTO BENH VALUES ('BE014', 'Bong', 'Cap Cuu', 1000000);
+INSERT INTO BENH VALUES ('BE015', 'Ngo Doc', 'Cap Cuu', 850000);
+INSERT INTO BENH VALUES ('BE016', 'Ung Thu Da Day', 'Ung Buou', 4000000);
+INSERT INTO BENH VALUES ('BE017', 'Ung Thu Da', 'Ung Buou', 500000);
+INSERT INTO BENH VALUES ('BE018', 'Ung Thu Gan', 'Ung Buou', 4500000);
+INSERT INTO BENH VALUES ('BE019', 'Ung Thu Phoi', 'Ung Buou', 2050000);
+INSERT INTO BENH VALUES ('BE020', 'Ung Thu Vu', 'Ung Buou', 1750000);
+INSERT INTO BENH VALUES ('BE021', 'Viem Tui Mat', 'Noi Soi', 5700000);
+INSERT INTO BENH VALUES ('BE022', 'Cat Amidan', 'Noi Soi', 12500000);
+INSERT INTO BENH VALUES ('BE023', 'Cat Ruot Thua', 'Noi Soi', 19000000);
+INSERT INTO BENH VALUES ('BE024', 'Soi Than', 'Noi Soi', 15000000);
+INSERT INTO BENH VALUES ('BE025', 'Thoat Vi Dia Dem', 'Noi Soi', 40000000);
 
 commit;
 
-INSERT INTO PHONGBENH VALUES ('PH101', 'Thuong', 1, 1, 8, 5);
-INSERT INTO PHONGBENH VALUES ('PH102', 'Thuong', 1, 1, 8, 7);
-INSERT INTO PHONGBENH VALUES ('PH103', 'Thuong', 1, 1, 6, 5);
-INSERT INTO PHONGBENH VALUES ('PH104', 'Thuong', 1, 1, 6, 5);
-INSERT INTO PHONGBENH VALUES ('PH105', 'Thuong', 1, 1, 4, 3);
-INSERT INTO PHONGBENH VALUES ('PH106', 'Thuong', 1, 2, 8, 7);
-INSERT INTO PHONGBENH VALUES ('PH107', 'Thuong', 1, 2, 8, 7);
-INSERT INTO PHONGBENH VALUES ('PH108', 'Thuong', 1, 2, 6, 5);
-INSERT INTO PHONGBENH VALUES ('PH109', 'Thuong', 1, 2, 6, 5);
-INSERT INTO PHONGBENH VALUES ('PH110', 'Thuong', 1, 2, 4, 3);
-INSERT INTO PHONGBENH VALUES ('PH111', 'Thuong', 1, 3, 8, 7);
-INSERT INTO PHONGBENH VALUES ('PH112', 'Thuong', 1, 3, 8, 7);
-INSERT INTO PHONGBENH VALUES ('PH113', 'Thuong', 1, 3, 6, 5);
-INSERT INTO PHONGBENH VALUES ('PH114', 'Thuong', 1, 3, 6, 5);
-INSERT INTO PHONGBENH VALUES ('PH115', 'Thuong', 1, 3, 4, 3);
-INSERT INTO PHONGBENH VALUES ('PH116', 'Thuong', 1, 4, 8, 7);
-INSERT INTO PHONGBENH VALUES ('PH117', 'Thuong', 1, 4, 8, 7);
-INSERT INTO PHONGBENH VALUES ('PH118', 'Thuong', 1, 4, 6, 5);
-INSERT INTO PHONGBENH VALUES ('PH119', 'Thuong', 1, 4, 6, 5);
-INSERT INTO PHONGBENH VALUES ('PH120', 'Thuong', 1, 4, 4, 3);
-INSERT INTO PHONGBENH VALUES ('PH201', 'VIP', 2, 1, 4, 3);
-INSERT INTO PHONGBENH VALUES ('PH202', 'VIP', 2, 1, 2, 1);
-INSERT INTO PHONGBENH VALUES ('PH203', 'VIP', 2, 1, 2, 1);
-INSERT INTO PHONGBENH VALUES ('PH204', 'VIP', 2, 2, 4, 3);
-INSERT INTO PHONGBENH VALUES ('PH205', 'VIP', 2, 2, 2, 1);
-INSERT INTO PHONGBENH VALUES ('PH206', 'VIP', 2, 2, 3, 2);
-INSERT INTO PHONGBENH VALUES ('PH207', 'VIP', 2, 3, 4, 3);
-INSERT INTO PHONGBENH VALUES ('PH208', 'VIP', 2, 3, 3, 2);
-INSERT INTO PHONGBENH VALUES ('PH209', 'VIP', 2, 3, 3, 3);
-INSERT INTO PHONGBENH VALUES ('PH210', 'VIP', 2, 4, 2, 2);
-INSERT INTO PHONGBENH VALUES ('PH301', 'Cach ly', 3, 1, 8, 6);
-INSERT INTO PHONGBENH VALUES ('PH302', 'Cach ly', 3, 1, 8, 8);
-INSERT INTO PHONGBENH VALUES ('PH303', 'Cach ly', 3, 1, 4, 4);
-INSERT INTO PHONGBENH VALUES ('PH304', 'Cach ly', 3, 1, 4, 3);
-INSERT INTO PHONGBENH VALUES ('PH305', 'Cach ly', 3, 1, 1, 0);
-INSERT INTO PHONGBENH VALUES ('PH306', 'Cach ly', 3, 1, 2, 2);
-INSERT INTO PHONGBENH VALUES ('PH307', 'Cach ly', 3, 1, 3, 3);
-INSERT INTO PHONGBENH VALUES ('PH308', 'Cach ly', 3, 1, 1, 1);
-INSERT INTO PHONGBENH VALUES ('PH309', 'Cach ly', 3, 2, 8, 8);
-INSERT INTO PHONGBENH VALUES ('PH310', 'Cach ly', 3, 2, 8, 8);
-INSERT INTO PHONGBENH VALUES ('PH311', 'Cach ly', 3, 2, 4, 4);
-INSERT INTO PHONGBENH VALUES ('PH312', 'Cach ly', 3, 2, 4, 4);
-INSERT INTO PHONGBENH VALUES ('PH313', 'Cach ly', 3, 2, 1, 1);
-INSERT INTO PHONGBENH VALUES ('PH314', 'Cach ly', 3, 2, 1, 1);
-INSERT INTO PHONGBENH VALUES ('PH315', 'Cach ly', 3, 2, 1, 1);
-INSERT INTO PHONGBENH VALUES ('PH316', 'Cach ly', 3, 2, 1, 1);
-INSERT INTO PHONGBENH VALUES ('PH317', 'Cach ly', 3, 3, 8, 8);
-INSERT INTO PHONGBENH VALUES ('PH318', 'Cach ly', 3, 3, 8, 8);
-INSERT INTO PHONGBENH VALUES ('PH319', 'Cach ly', 3, 3, 4, 4);
-INSERT INTO PHONGBENH VALUES ('PH320', 'Cach ly', 3, 3, 4, 4);
-INSERT INTO PHONGBENH VALUES ('PH321', 'Cach ly', 3, 3, 1, 1);
-INSERT INTO PHONGBENH VALUES ('PH322', 'Cach ly', 3, 3, 1, 1);
-INSERT INTO PHONGBENH VALUES ('PH323', 'Cach ly', 3, 3, 1, 1);
-INSERT INTO PHONGBENH VALUES ('PH324', 'Cach ly', 3, 3, 1, 1);
-INSERT INTO PHONGBENH VALUES ('PH325', 'Cach ly', 3, 4, 8, 8);
-INSERT INTO PHONGBENH VALUES ('PH326', 'Cach ly', 3, 4, 8, 8);
-INSERT INTO PHONGBENH VALUES ('PH327', 'Cach ly', 3, 4, 4, 4);
-INSERT INTO PHONGBENH VALUES ('PH328', 'Cach ly', 3, 4, 4, 4);
-INSERT INTO PHONGBENH VALUES ('PH329', 'Cach ly', 3, 4, 1, 1);
-INSERT INTO PHONGBENH VALUES ('PH330', 'Cach ly', 3, 4, 1, 1);
-INSERT INTO PHONGBENH VALUES ('PH331', 'Cach ly', 3, 4, 1, 1);
-INSERT INTO PHONGBENH VALUES ('PH332', 'Cach ly', 3, 4, 1, 1);
-INSERT INTO PHONGBENH VALUES ('PH333', 'Cach ly', 3, 5, 8, 8);
-INSERT INTO PHONGBENH VALUES ('PH334', 'Cach ly', 3, 5, 8, 8);
-INSERT INTO PHONGBENH VALUES ('PH335', 'Cach ly', 3, 5, 4, 4);
-INSERT INTO PHONGBENH VALUES ('PH336', 'Cach ly', 3, 5, 4, 4);
-INSERT INTO PHONGBENH VALUES ('PH337', 'Cach ly', 3, 5, 1, 1);
-INSERT INTO PHONGBENH VALUES ('PH338', 'Cach ly', 3, 5, 1, 1);
-INSERT INTO PHONGBENH VALUES ('PH339', 'Cach ly', 3, 5, 1, 1);
-INSERT INTO PHONGBENH VALUES ('PH340', 'Cach ly', 3, 5, 1, 1);
+INSERT INTO PHONGBENH VALUES ('PH101', 'Thuong', 1, 1, 8, 5, 250000);
+INSERT INTO PHONGBENH VALUES ('PH102', 'Thuong', 1, 1, 8, 7, 250000);
+INSERT INTO PHONGBENH VALUES ('PH103', 'Thuong', 1, 1, 6, 5, 350000);
+INSERT INTO PHONGBENH VALUES ('PH104', 'Thuong', 1, 1, 6, 5, 350000);
+INSERT INTO PHONGBENH VALUES ('PH105', 'Thuong', 1, 1, 4, 3, 500000);
+INSERT INTO PHONGBENH VALUES ('PH106', 'Thuong', 1, 2, 8, 7, 250000);
+INSERT INTO PHONGBENH VALUES ('PH107', 'Thuong', 1, 2, 8, 7, 250000);
+INSERT INTO PHONGBENH VALUES ('PH108', 'Thuong', 1, 2, 6, 5, 350000);
+INSERT INTO PHONGBENH VALUES ('PH109', 'Thuong', 1, 2, 6, 5, 350000);
+INSERT INTO PHONGBENH VALUES ('PH110', 'Thuong', 1, 2, 4, 3, 500000);
+INSERT INTO PHONGBENH VALUES ('PH111', 'Thuong', 1, 3, 8, 7, 250000);
+INSERT INTO PHONGBENH VALUES ('PH112', 'Thuong', 1, 3, 8, 7, 250000);
+INSERT INTO PHONGBENH VALUES ('PH113', 'Thuong', 1, 3, 6, 5, 350000);
+INSERT INTO PHONGBENH VALUES ('PH114', 'Thuong', 1, 3, 6, 5, 350000);
+INSERT INTO PHONGBENH VALUES ('PH115', 'Thuong', 1, 3, 4, 3, 500000);
+INSERT INTO PHONGBENH VALUES ('PH116', 'Thuong', 1, 4, 8, 7, 250000);
+INSERT INTO PHONGBENH VALUES ('PH117', 'Thuong', 1, 4, 8, 7, 250000);
+INSERT INTO PHONGBENH VALUES ('PH118', 'Thuong', 1, 4, 6, 5, 350000);
+INSERT INTO PHONGBENH VALUES ('PH119', 'Thuong', 1, 4, 6, 5, 350000);
+INSERT INTO PHONGBENH VALUES ('PH120', 'Thuong', 1, 4, 4, 3, 500000);
+INSERT INTO PHONGBENH VALUES ('PH201', 'VIP', 2, 1, 4, 3, 1000000);
+INSERT INTO PHONGBENH VALUES ('PH202', 'VIP', 2, 1, 2, 1, 3000000);
+INSERT INTO PHONGBENH VALUES ('PH203', 'VIP', 2, 1, 2, 1, 3000000);
+INSERT INTO PHONGBENH VALUES ('PH204', 'VIP', 2, 2, 4, 3, 1000000);
+INSERT INTO PHONGBENH VALUES ('PH205', 'VIP', 2, 2, 2, 1, 3000000);
+INSERT INTO PHONGBENH VALUES ('PH206', 'VIP', 2, 2, 3, 2, 2400000);
+INSERT INTO PHONGBENH VALUES ('PH207', 'VIP', 2, 3, 4, 3, 1000000);
+INSERT INTO PHONGBENH VALUES ('PH208', 'VIP', 2, 3, 3, 2, 2400000);
+INSERT INTO PHONGBENH VALUES ('PH209', 'VIP', 2, 3, 3, 3, 2400000);
+INSERT INTO PHONGBENH VALUES ('PH210', 'VIP', 2, 4, 2, 2, 3000000);
+INSERT INTO PHONGBENH VALUES ('PH301', 'Cach ly', 3, 1, 8, 6, 500000);
+INSERT INTO PHONGBENH VALUES ('PH302', 'Cach ly', 3, 1, 8, 8, 500000);
+INSERT INTO PHONGBENH VALUES ('PH303', 'Cach ly', 3, 1, 4, 4, 1000000);
+INSERT INTO PHONGBENH VALUES ('PH304', 'Cach ly', 3, 1, 4, 3, 1000000);
+INSERT INTO PHONGBENH VALUES ('PH305', 'Cach ly', 3, 1, 1, 0, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH306', 'Cach ly', 3, 1, 2, 2, 2000000);
+INSERT INTO PHONGBENH VALUES ('PH307', 'Cach ly', 3, 1, 3, 3, 1500000);
+INSERT INTO PHONGBENH VALUES ('PH308', 'Cach ly', 3, 1, 1, 1, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH309', 'Cach ly', 3, 2, 8, 8, 500000);
+INSERT INTO PHONGBENH VALUES ('PH310', 'Cach ly', 3, 2, 8, 8, 500000);
+INSERT INTO PHONGBENH VALUES ('PH311', 'Cach ly', 3, 2, 4, 4, 1000000);
+INSERT INTO PHONGBENH VALUES ('PH312', 'Cach ly', 3, 2, 4, 4, 1000000);
+INSERT INTO PHONGBENH VALUES ('PH313', 'Cach ly', 3, 2, 1, 1, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH314', 'Cach ly', 3, 2, 1, 1, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH315', 'Cach ly', 3, 2, 1, 1, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH316', 'Cach ly', 3, 2, 1, 1, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH317', 'Cach ly', 3, 3, 8, 8, 500000);
+INSERT INTO PHONGBENH VALUES ('PH318', 'Cach ly', 3, 3, 8, 8, 500000);
+INSERT INTO PHONGBENH VALUES ('PH319', 'Cach ly', 3, 3, 4, 4, 1000000);
+INSERT INTO PHONGBENH VALUES ('PH320', 'Cach ly', 3, 3, 4, 4, 1000000);
+INSERT INTO PHONGBENH VALUES ('PH321', 'Cach ly', 3, 3, 1, 1, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH322', 'Cach ly', 3, 3, 1, 1, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH323', 'Cach ly', 3, 3, 1, 1, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH324', 'Cach ly', 3, 3, 1, 1, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH325', 'Cach ly', 3, 4, 8, 8, 500000);
+INSERT INTO PHONGBENH VALUES ('PH326', 'Cach ly', 3, 4, 8, 8, 500000);
+INSERT INTO PHONGBENH VALUES ('PH327', 'Cach ly', 3, 4, 4, 4, 1000000);
+INSERT INTO PHONGBENH VALUES ('PH328', 'Cach ly', 3, 4, 4, 4, 1000000);
+INSERT INTO PHONGBENH VALUES ('PH329', 'Cach ly', 3, 4, 1, 1, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH330', 'Cach ly', 3, 4, 1, 1, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH331', 'Cach ly', 3, 4, 1, 1, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH332', 'Cach ly', 3, 4, 1, 1, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH333', 'Cach ly', 3, 5, 8, 8, 500000);
+INSERT INTO PHONGBENH VALUES ('PH334', 'Cach ly', 3, 5, 8, 8, 500000);
+INSERT INTO PHONGBENH VALUES ('PH335', 'Cach ly', 3, 5, 4, 4, 1000000);
+INSERT INTO PHONGBENH VALUES ('PH336', 'Cach ly', 3, 5, 4, 4, 1000000);
+INSERT INTO PHONGBENH VALUES ('PH337', 'Cach ly', 3, 5, 1, 1, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH338', 'Cach ly', 3, 5, 1, 1, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH339', 'Cach ly', 3, 5, 1, 1, 4000000);
+INSERT INTO PHONGBENH VALUES ('PH340', 'Cach ly', 3, 5, 1, 1, 4000000);
 
 commit;
 
@@ -315,11 +349,11 @@ insert into taikhoan values ('BN001', null);
 insert into taikhoan values ('BN002', null);
 commit;
 
-INSERT INTO CABENH VALUES ('CA001','BN001', 'BS018', 'BE021', 'Cap cuu', 'Nhap vien', TO_TIMESTAMP('07/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('12/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', 'PH101');
-INSERT INTO CABENH VALUES ('CA002','BN002', 'BS006', 'BE022', 'Nang', 'Tai gia', TO_TIMESTAMP('20/02/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('25/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', null);
-INSERT INTO CABENH VALUES ('CA003','BN003', 'BS013', 'BE016', 'Khong cap cuu', 'Nhap vien', TO_TIMESTAMP('15/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('20/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', 'PH101');
-INSERT INTO CABENH VALUES ('CA004','BN004', 'BS014', 'BE017', 'Cham soc dac biet', 'Nhap vien', TO_TIMESTAMP('30/04/2022 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('06/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', 'PH101');
-INSERT INTO CABENH VALUES ('CA005','BN005', 'BS011', 'BE018', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('14/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('20/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH102');
+INSERT INTO CABENH VALUES ('CA001','BN001', 'BS018', 'BE021', 'Cap cuu', 'Nhap vien', TO_TIMESTAMP('07/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('12/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', 'PH101', TO_TIMESTAMP('07/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA002','BN002', 'BS006', 'BE022', 'Nang', 'Tai gia', TO_TIMESTAMP('20/02/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('25/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', null, TO_TIMESTAMP('20/02/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA003','BN003', 'BS013', 'BE016', 'Khong cap cuu', 'Nhap vien', TO_TIMESTAMP('15/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('20/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', 'PH101', TO_TIMESTAMP('15/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA004','BN004', 'BS014', 'BE017', 'Cham soc dac biet', 'Nhap vien', TO_TIMESTAMP('30/04/2022 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('06/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', 'PH101', TO_TIMESTAMP('30/04/2022 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA005','BN005', 'BS011', 'BE018', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('14/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('20/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH102', TO_TIMESTAMP('14/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
 INSERT INTO CABENH VALUES ('CA006','BN006', 'BS015', 'BE011', 'Nang', 'Tai gia', TO_TIMESTAMP('28/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('04/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', null);
 INSERT INTO CABENH VALUES ('CA007','BN007', 'BS010', 'BE019', 'Cap cuu', 'Nhap vien', TO_TIMESTAMP('02/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('08/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Cham soc', 'PH103');
 INSERT INTO CABENH VALUES ('CA008','BN008', 'BS016', 'BE004', 'Khong cap cuu', 'Nhap vien', TO_TIMESTAMP('09/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('15/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', 'PH104');
