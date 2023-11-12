@@ -167,7 +167,7 @@ create table kethuoc
     ngayke timestamp,
     sl number,
     constraint pk_kethuoc primary key (maca, mathuoc, ngayke),
-    constraint fk_kethuoc_maca foreign key (maca) references cabenh(maca),
+    constraint fk_kethuoc_maca foreign key (maca) references cabenh(maca) on delete cascade,
     constraint fk_kethuoc_mathuoc foreign key (mathuoc) references thuoc(mathuoc),
     constraint ck_kethuoc_sl check (sl >= 0)
 );
@@ -184,7 +184,7 @@ create table hoadonvienphi
     tienkham integer not null,
     trangthai number not null,
     ghichu varchar2(500),
-    constraint fk_hoadonvienphi_maca foreign key (maca) references cabenh(maca),
+    constraint fk_hoadonvienphi_maca foreign key (maca) references cabenh(maca) on delete cascade,
     constraint pk_hoadonvienphi primary key (mahd)
 );
 
@@ -200,7 +200,7 @@ create table lichhenkham
     qlxacnhan number not null,
     bnxacnhan number not null,
     constraint pk_lichhenkham primary key (malich),
-    constraint fk_lichhenkham_mabn foreign key (mabn) references benhnhan(mabn)
+    constraint fk_lichhenkham_mabn foreign key (mabn) references benhnhan(mabn) on delete cascade
 );
 
 commit;
