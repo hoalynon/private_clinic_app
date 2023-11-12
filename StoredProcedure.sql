@@ -112,11 +112,12 @@ create or replace procedure proc_benh_them1benh (
                                                     BEMaBenh BENH.MABENH%TYPE,
                                                     BETenBenh BENH.TENBENH%TYPE,
                                                     BETenKhoa BENH.TENKHOA%TYPE,
+                                                    BEGia BENH.GIA%TYPE,
                                                     changedrows OUT INT
                                                     )
 as
 begin
-    INSERT INTO BENH VALUES (BEMaBenh, BETenBenh, BETenKhoa);
+    INSERT INTO BENH VALUES (BEMaBenh, BETenBenh, BETenKhoa, BEGia);
     changedrows := SQL%ROWCOUNT;
 end;
 /
@@ -137,6 +138,7 @@ create or replace procedure proc_benh_sua1benh (
                                                     BEMaBenh BENH.MABENH%TYPE,
                                                     BETenBenh BENH.TENBENH%TYPE,
                                                     BETenKhoa BENH.TENKHOA%TYPE,
+                                                    BEGia BENH.GIA%TYPE,
                                                     changedrows OUT INT
                                                     )
 as
@@ -144,7 +146,7 @@ as
 begin
     SELECT MABENH INTO v_mabenh FROM BENH WHERE MABENH = BEMaBenh;
     UPDATE BENH 
-        SET TENBENH = BETenBenh, TENKHOA = BETenKhoa
+        SET TENBENH = BETenBenh, TENKHOA = BETenKhoa, GIA = BEGia
         WHERE MABENH = BEMaBenh;
     changedrows := SQL%ROWCOUNT;
 exception
@@ -173,7 +175,7 @@ create or replace procedure proc_benhnhan_them1benhnhan (
                                                     )
 as
 begin
-    INSERT INTO BENHNHAN VALUES (BNMaBN, BNHoTen, BNGioiTinh, TO_DATE(BNNgaySinh,'DD/MM/YYYY'), BNQueQuan, BNNoiOHienTai);
+    INSERT INTO BENHNHAN VALUES (BNMaBN, BNHoTen, BNGioiTinh, TO_DATE(BNNgaySinh,'DD/MM/YYYY'), BNQueQuan, BNNoiOHienTai, 1);
     changedrows := SQL%ROWCOUNT;
 end;
 /
@@ -197,6 +199,7 @@ create or replace procedure proc_benhnhan_sua1benhnhan (
                                                     BNNgaySinh VARCHAR,
                                                     BNQueQuan BENHNHAN.QUEQUAN%TYPE,
                                                     BNNoiOHienTai BENHNHAN.NOIOHIENTAI%TYPE,
+                                                    BNKhaNangDatLich BENHNHAN.KHANANGDATLICH%TYPE,
                                                     changedrows OUT INT
                                                     )
 as
@@ -204,7 +207,7 @@ as
 begin
     SELECT MABN INTO v_mabn FROM BENHNHAN WHERE MABN = BNMaBN;
     UPDATE BENHNHAN 
-        SET HOTEN = BNHoTen, GIOITINH = BNGioiTinh, NGAYSINH = TO_DATE(BNNgaySinh,'DD/MM/YYYY'), QUEQUAN = BNQueQuan, NOIOHIENTAI = BNNoiOHienTai
+        SET HOTEN = BNHoTen, GIOITINH = BNGioiTinh, NGAYSINH = TO_DATE(BNNgaySinh,'DD/MM/YYYY'), QUEQUAN = BNQueQuan, NOIOHIENTAI = BNNoiOHienTai, KHANANGDATLICH = BNKhaNangDatLich
         WHERE MABN = BNMaBN;
     changedrows := SQL%ROWCOUNT;
 exception
@@ -246,7 +249,7 @@ begin
         END IF;
     END IF;
    
-    INSERT INTO CABENH VALUES (CBMaCa, CBMaBN, CBMaBS, CBMaBenh, CBMucDo, CBHinhThuc, TO_TIMESTAMP(CBBatDau,'DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP(CBKetThuc,'DD/MM/YYYY HH24:MI:SS'), CBTinhTrang, CBMaPhong);
+    INSERT INTO CABENH VALUES (CBMaCa, CBMaBN, CBMaBS, CBMaBenh, CBMucDo, CBHinhThuc, TO_TIMESTAMP(CBBatDau,'DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP(CBKetThuc,'DD/MM/YYYY HH24:MI:SS'), CBTinhTrang, CBMaPhong, TO_TIMESTAMP(CBBatDau,'DD/MM/YYYY HH24:MI:SS'));
     
     changedrows := SQL%ROWCOUNT;
     UPDATE CABENH SET MAPHONG = CBMaPhong WHERE MABN = CBMaBN;
@@ -294,6 +297,8 @@ as
     cadaketthuc EXCEPTION;
     v_maca CABENH.MACA%TYPE;
     ngaydaketthuc EXCEPTION;
+    v_ngaychuyengannhat CABENH.NGAYCHUYENGANNHAT%TYPE;
+    giathuephong PHONGBENH.GIA1NGAY%TYPE;
 begin
     -- Kiem tra su ton tai cua ca benh --
     SELECT MACA INTO v_maca FROM CABENH WHERE MACA = CBMaCa;
@@ -317,10 +322,20 @@ begin
     IF (v_maphongtruoc <> CBMaPhong AND CBMaPhong is not null AND ((v_controng-1) < 0)) THEN
         RAISE khongcontrong;
     END IF;
+
+    -- Kiem tra chuyen phong va tinh tien thue --
+    SELECT NGAYCHUYENGANNHAT INTO v_ngaychuyenganhat FROM CABENH WHERE MACA = CBMaCa;
+    IF (v_maphongtruoc is not null and v_maphongtruoc <> CBMaPhong) THEN
+        SELECT GIA1NGAY INTO giathuephong FROM PHONGBENH WHERE MAPHONG = v_maphongtruoc;
+        UPDATE HOADONVIENPHI
+            SET TIENKHAM = TIENKHAM + (giathuephong * (TRUNC(CURRENT_TIMESTAMP) - TRUNC(v_ngaychuyengannhat)));
+        WHERE MACA = CBMaCa;
+        v_ngaychuyengannhat := CURRENT_TIMESTAMP;
+    END IF;
     
     -- Cap nhat thong tin ca benh --
     UPDATE CABENH 
-        SET MUCDO = CBMucDo, HINHTHUC = CBHinhThuc, NGAYKETTHUC = TO_TIMESTAMP(CBKetThuc,'DD/MM/YYYY HH24:MI:SS'), TINHTRANG = CBTinhTrang, MAPHONG = CBMaPhong
+        SET MUCDO = CBMucDo, HINHTHUC = CBHinhThuc, NGAYKETTHUC = TO_TIMESTAMP(CBKetThuc,'DD/MM/YYYY HH24:MI:SS'), TINHTRANG = CBTinhTrang, MAPHONG = CBMaPhong, NGAYCHUYENGANNHAT = v_ngaychuyengannhat
         WHERE MACA = CBMaCa;
     changedrows := SQL%ROWCOUNT;
     
@@ -469,6 +484,7 @@ create or replace procedure proc_phongbenh_them1phongbenh (
                                                     PHToa PHONGBENH.TOA%TYPE,
                                                     PHLau PHONGBENH.LAU%TYPE,
                                                     PHSucChua PHONGBENH.SUCCHUA%TYPE,
+                                                    PHGia1Ngay PHONGBENH.GIA1NGAY%TYPE,
                                                     changedrows OUT INT
                                                     )
 as
@@ -477,7 +493,7 @@ begin
      IF PHSucChua < 0 THEN
         RAISE succhuakhongdu;
     END IF;
-    INSERT INTO PHONGBENH VALUES (PHMaPhong, PHLoai, PHToa, PHLau, PHSucChua, PHSucChua - func_phongbenh_tinhsisophong(PHMaPhong));
+    INSERT INTO PHONGBENH VALUES (PHMaPhong, PHLoai, PHToa, PHLau, PHSucChua, PHSucChua - func_phongbenh_tinhsisophong(PHMaPhong), PHGia1Ngay);
     changedrows := SQL%ROWCOUNT;
 exception
     when succhuakhongdu then
@@ -503,6 +519,7 @@ create or replace procedure proc_phongbenh_sua1phongbenh (
                                                     PHLau PHONGBENH.LAU%TYPE,
                                                     PHSucChua PHONGBENH.SUCCHUA%TYPE,
                                                     PHLoai PHONGBENH.LOAI%TYPE,
+                                                    PHGia1Ngay PHONGBENH.GIA1NGAY%TYPE,
                                                     changedrows OUT INT
                                                     )
 as
@@ -515,7 +532,7 @@ begin
     END IF;
     
     UPDATE PHONGBENH 
-        SET TOA = PHToa, LAU = PHLau, SUCCHUA = PHSucChua, LOAI = PHLoai, CONTRONG = PHSucChua - (func_phongbenh_tinhsisophong(PHMaPhong))
+        SET TOA = PHToa, LAU = PHLau, SUCCHUA = PHSucChua, LOAI = PHLoai, CONTRONG = PHSucChua - (func_phongbenh_tinhsisophong(PHMaPhong)), GIA1NGAY = PHGia1Ngay
         WHERE MAPHONG = PHMaPhong;
    
     changedrows := SQL%ROWCOUNT;
@@ -596,6 +613,7 @@ create or replace procedure proc_thietbiyte_them1thietbiyte (
                                                     TBLoaiSD THIETBIYTE.LOAISD%TYPE,
                                                     TBCongDung THIETBIYTE.CONGDUNG%TYPE,
                                                     TBSLTong THIETBIYTE.SLTONG%TYPE,
+                                                    TBGia THIETBIYTE.GIA%TYPE,
                                                     changedrows OUT INT
                                                     )
 as
@@ -605,10 +623,10 @@ begin
         RAISE khongdusoluong;
     END IF;
     IF TBLoaiSD = 'Tai su dung' THEN
-        INSERT INTO THIETBIYTE VALUES (TBMaThietBi, TBTenThietBi, TBLoaiSD, TBCongDung, TBSLTong, TBSLTong - func_thietbiyte_tinhsothietbidieuphoi(TBMaThietBi));
+        INSERT INTO THIETBIYTE VALUES (TBMaThietBi, TBTenThietBi, TBLoaiSD, TBCongDung, TBSLTong, TBSLTong - func_thietbiyte_tinhsothietbidieuphoi(TBMaThietBi), TBGia);
         changedrows := SQL%ROWCOUNT;
     ELSE
-        INSERT INTO THIETBIYTE VALUES (TBMaThietBi, TBTenThietBi, TBLoaiSD, TBCongDung, TBSLTong, TBSLTong);
+        INSERT INTO THIETBIYTE VALUES (TBMaThietBi, TBTenThietBi, TBLoaiSD, TBCongDung, TBSLTong, TBSLTong, TBGia);
         changedrows := SQL%ROWCOUNT;
     END IF;
 exception    
@@ -635,6 +653,7 @@ create or replace procedure proc_thietbiyte_sua1thietbiyte (
                                                     TBLoaiSD THIETBIYTE.LOAISD%TYPE,
                                                     TBCongDung THIETBIYTE.CONGDUNG%TYPE,
                                                     TBSLTong THIETBIYTE.SLTONG%TYPE,
+                                                    TBGia THIETBIYTE.GIA%TYPE,
                                                     changedrows OUT INT
                                                     )
 as
@@ -648,7 +667,7 @@ begin
     END IF;
     
     UPDATE THIETBIYTE 
-        SET TENTHIETBI = TBTenThietBi, CONGDUNG = TBCongDung, SLTONG = TBSLTong, SLCONLAI = TBSLTong - func_thietbiyte_tinhsothietbidieuphoi(TBMaThietBi)
+        SET TENTHIETBI = TBTenThietBi, CONGDUNG = TBCongDung, SLTONG = TBSLTong, SLCONLAI = TBSLTong - func_thietbiyte_tinhsothietbidieuphoi(TBMaThietBi), GIA = TBGia
         WHERE MATHIETBI = TBMaThietBi;
     changedrows := SQL%ROWCOUNT;
      UPDATE THIETBIYTE SET SLCONLAI = SLCONLAI + func_thietbiyte_tinhsothietbidieuphoi(TBMaThietBi) WHERE MATHIETBI = TBMaThietBi AND LOAISD = '1 lan';
@@ -691,6 +710,8 @@ as
     cadaketthuc EXCEPTION;
     v_maca CABENH.MACA%TYPE;
     ngaydaketthuc EXCEPTION;
+    v_ngaychuyengannhat CABENH.NGAYCHUYENGANNHAT%TYPE;
+    giathuephong PHONGBENH.GIA1NGAY%TYPE;
 begin
     SELECT MACA INTO v_maca FROM CABENH WHERE MACA = CBMaCa AND MABS = BSMaBS;
 
@@ -711,8 +732,19 @@ begin
     IF (v_maphongtruoc <> CBMaPhong AND CBMaPhong is not null AND ((v_controng-1) < 0)) THEN
         RAISE khongcontrong;
     END IF;
+
+        -- Kiem tra chuyen phong va tinh tien thue --
+    SELECT NGAYCHUYENGANNHAT INTO v_ngaychuyenganhat FROM CABENH WHERE MACA = CBMaCa;
+    IF (v_maphongtruoc is not null and v_maphongtruoc <> CBMaPhong) THEN
+        SELECT GIA1NGAY INTO giathuephong FROM PHONGBENH WHERE MAPHONG = v_maphongtruoc;
+        UPDATE HOADONVIENPHI
+            SET TIENKHAM = TIENKHAM + (giathuephong * (TRUNC(CURRENT_TIMESTAMP) - TRUNC(v_ngaychuyengannhat)));
+        WHERE MACA = CBMaCa;
+        v_ngaychuyengannhat := CURRENT_TIMESTAMP;
+    END IF;
+
     UPDATE CABENH 
-        SET MUCDO = CBMucDo, HINHTHUC = CBHinhThuc, NGAYKETTHUC = TO_TIMESTAMP(CBKetThuc,'DD/MM/YYYY HH24:MI:SS'), TINHTRANG = CBTinhTrang, MAPHONG = CBMaPhong
+        SET MUCDO = CBMucDo, HINHTHUC = CBHinhThuc, NGAYKETTHUC = TO_TIMESTAMP(CBKetThuc,'DD/MM/YYYY HH24:MI:SS'), TINHTRANG = CBTinhTrang, MAPHONG = CBMaPhong, NGAYCHUYENGANNHAT = v_ngaychuyengannhat
         WHERE MACA = CBMaCa AND MABS = BSMaBS;
     changedrows := SQL%ROWCOUNT;
     
@@ -911,5 +943,350 @@ begin
 end;
 /
 ----------------------------------------------
+-- 47
+create or replace procedure proc_thuoc_laythuoc (p_result OUT SYS_REFCURSOR)
+as
+begin
+    OPEN p_result FOR SELECT * FROM THUOC ORDER BY MATHUOC ASC;
+end;
+/
+-- 48
+create or replace procedure proc_thuoc_them1thuoc (
+                                                    THMaThuoc THUOC.MATHUOC%TYPE,
+                                                    THTenThuoc THUOC.TENTHIETBI%TYPE,
+                                                    THCongDung THUOC.CONGDUNG%TYPE,
+                                                    THSLConLai THUOC.SLCONLAI%TYPE,
+                                                    THGia THUOC.GIA%TYPE,
+                                                    changedrows OUT INT
+                                                    )
+as
+begin
+    INSERT INTO THUOC VALUES (THMaThuoc, THTenThuoc, THCongDung, THSLConLai, THGia);
+    changedrows := SQL%ROWCOUNT;
+end;
+/
+-- 49
+create or replace procedure proc_thuoc_xoa1thuoc (
+                                                    THMaThuoc THUOC.MATHUOC,
+                                                    changedrows OUT INT
+                                                    )
+as
+begin
+    DELETE FROM THUOC 
+        WHERE MATHUOC = THMaThuoc;
+    changedrows := SQL%ROWCOUNT;
+end;
+/
+-- 50
+create or replace procedure proc_thuoc_sua1thuoc (
+                                                    THMaThuoc THUOC.MATHUOC%TYPE,
+                                                    THTenThuoc THUOC.TENTHIETBI%TYPE,
+                                                    THCongDung THUOC.CONGDUNG%TYPE,
+                                                    THSLConLai THUOC.SLCONLAI%TYPE,
+                                                    THGia THUOC.GIA%TYPE,
+                                                    changedrows OUT INT
+                                                    )
+as
+    v_mathuoc THUOC.MATHUOC%TYPE;
+begin
+    SELECT MATHUOC INTO v_mathuoc FROM THUOC WHERE MATHUOC = THMaThuoc;
+    
+    UPDATE THUOC 
+        SET TENTHUOC = THTenThuoc, CONGDUNG = THCongDung, SLCONLAI = THSLConLai, GIA = THGia
+        WHERE MATHUOC = THMaThuoc;
+    changedrows := SQL%ROWCOUNT;
 
-                                                   
+exception
+    when no_data_found then
+        raise_application_error(-20145, 'Khong ton tai thuoc nao voi ma tren');
+end;
+/
+----------------------------------------------
+-- 51
+create or replace procedure proc_kethuoc_laykethuoc (p_result OUT SYS_REFCURSOR)
+as
+begin
+    OPEN p_result FOR SELECT * FROM KETHUOC ORDER BY NGAYKE DESC;
+end;
+/
+-- 52
+create or replace procedure proc_kethuoc_them1kethuoc (
+                                                    KTMaCa KETHUOC.MACA%TYPE,
+                                                    KTMaThuoc KETHUOC.MATHUOC%TYPE,
+                                                    KTNgayKe varchar,
+                                                    KTSL KETHUOC.SL%TYPE,
+                                                    changedrows OUT INT
+                                                    )
+as
+begin
+    INSERT INTO KETHUOC VALUES (KTMaCa, KTMaThuoc, TO_TIMESTAMP(KTNgayKe,'DD/MM/YYYY HH24:MI:SS'), KTSL);
+    changedrows := SQL%ROWCOUNT;
+end;
+/
+-- 53
+create or replace procedure proc_kethuoc_xoa1kethuoc (
+                                                    KTMaCa KETHUOC.MACA%TYPE,
+                                                    KTMaThuoc KETHUOC.MATHUOC%TYPE,
+                                                    KTNgayKe KETHUOC.NGAYKE%TYPE,
+                                                    changedrows OUT INT
+                                                    )
+as
+begin
+    DELETE FROM KETHUOC 
+        WHERE MACA = KTMaCa, MATHUOC = KTMaThuoc, NGAYKE = TO_TIMESTAMP(KTNgayKe,'DD/MM/YYYY HH24:MI:SS');
+    changedrows := SQL%ROWCOUNT;
+end;
+/
+-- 54
+create or replace procedure proc_kethuoc_sua1kethuoc (
+                                                    KTMaCa KETHUOC.MACA%TYPE,
+                                                    KTMaThuoc KETHUOC.MATHUOC%TYPE,
+                                                    KTNgayKe varchar,
+                                                    KTSL KETHUOC.SL%TYPE,
+                                                    changedrows OUT INT
+                                                    )
+as
+    v_mathuoc KETHUOC.MATHUOC%TYPE;
+begin
+    SELECT MATHUOC INTO v_mathuoc FROM KETHUOC WHERE MACA = KTMaCa AND MATHUOC = KTMaThuoc AND NGAYKE = TO_TIMESTAMP(KTNgayKe,'DD/MM/YYYY HH24:MI:SS'); 
+    
+    UPDATE KETHUOC 
+        SET SL = KTSL
+        WHERE MACA = KTMaCa AND MATHUOC = KTMaThuoc AND NGAYKE = TO_TIMESTAMP(KTNgayKe,'DD/MM/YYYY HH24:MI:SS'); 
+    changedrows := SQL%ROWCOUNT;
+
+exception
+    when no_data_found then
+        raise_application_error(-20146, 'Khong ton tai don ke thuoc nao voi ma tren');
+end;
+/
+----------------------------------------------
+-- 55
+create or replace procedure proc_hoadonvienphi_layhoadonvienphi (p_result OUT SYS_REFCURSOR)
+as
+begin
+    OPEN p_result FOR SELECT * FROM HOADONVIENPHI WHERE TONGTIEN > 0 ORDER BY MAHD DESC;
+end;
+/
+-- 56
+create or replace procedure proc_hoadonvienphi_them1hoadonvienphi (
+                                                    HDMaHD HOADONVIENPHI.MAHD%TYPE,
+                                                    HDMaCa HOADONVIENPHI.MACA%TYPE,
+                                                    HDNgayLap varchar,
+                                                    HDGhiChu HOADONVIENPHI.GHICHU%TYPE,
+                                                    changedrows OUT INT
+                                                    )
+as
+begin
+    INSERT INTO HOADONVIENPHI VALUES (HDMaHD, KTMaThuoc, TO_TIMESTAMP(HDNgayLap,'DD/MM/YYYY HH24:MI:SS'), 0, 0, 0, 0, '');
+    changedrows := SQL%ROWCOUNT;
+end;
+/
+-- 57
+create or replace procedure proc_hoadonvienphi_xoa1hoadonvienphi (
+                                                    HDMaHD HOADONVIENPHI.MAHD%TYPE,
+                                                    changedrows OUT INT
+                                                    )
+as
+begin
+    DELETE FROM HOADONVIENPHI 
+        WHERE MAHD = KTMaCa, MATHUOC = KTMaThuoc, NGAYKE = TO_TIMESTAMP(KTNgayKe,'DD/MM/YYYY HH24:MI:SS');
+    changedrows := SQL%ROWCOUNT;
+end;
+/
+-- 58
+create or replace procedure proc_hoadonvienphi_sua1ghichu (
+                                                    HDMaHD HOADONVIENPHI.MAHD%TYPE,
+                                                    HDGhiChu HOADONVIENPHI.GHICHU%TYPE,
+                                                    changedrows OUT INT
+                                                    )
+as
+    v_mahd HOADONVIENPHI.MAHD%TYPE;
+begin
+    SELECT MAHD INTO v_mahd FROM HOADONVIENPHI WHERE MAHD = HDMaHD; 
+    
+    UPDATE HOADONVIENPHI
+        SET GHICHU = HDGhiChu
+        WHERE MAHD = HDMaHD;
+    changedrows := SQL%ROWCOUNT;
+
+exception
+    when no_data_found then
+        raise_application_error(-20147, 'Khong ton tai hoa don nao voi ma tren');
+end;
+/
+-- 59
+create or replace procedure proc_hoadonvienphi_tinhhoadon (
+                                                    HDMaHD HOADONVIENPHI.MAHD%TYPE,
+                                                    HDMaCa HOADONVIENPHI.MACA%TYPE,
+                                                    )
+as
+    v_maphong CABENH.MAPHONG%TYPE;
+    v_ngaychuyengannhat CABENH.NGAYCHUYENGANNHAT%TYPE;
+    giathuephong PHONGBENH.GIA1NGAY%TYPE;
+    v_tienthietbi HOADONVIENPHI.TIENKHAM%TYPE;
+    v_tienbenh HOADONVIENPHI.TIENKHAM%TYPE;
+    v_tienkham HOADONVIENPHI.TIENKHAM%TYPE;
+    v_tienthuoc HOADONVIENPHI.TIENTHUOC%TYPE;
+    v_tongtien HOADONVIENPHI.TONGTIEN%TYPE;
+begin
+
+    SELECT MAPHONG INTO v_maphong FROM CABENH WHERE MACA = HDMaCa;
+
+    SELECT TIENKHAM, TONGTIEN INTO v_tienkham, v_tongtien FROM HOADONVIENPHI WHERE MAHD = HDMaHD;
+
+    IF (v_tongtien = 0) THEN
+        SELECT SUM(DPTB.SOLUONG * TB.GIA) INTO v_tienthietbi FROM DIEUPHOITHIETBI DPTB, THIETBIYTE TB
+            WHERE DPTB.MACA = HDMaCa AND DPTB.MATHIETBI = TB.MATHIETBI;
+    
+        SELECT B.GIA INTO v_tienbenh FROM BENH B, CABENH CB WHERE CB.MACA = HDMaCa AND CB.MABENH = B.MABENH;
+    
+        SELECT SUM(KT.SL * TH.GIA) INTO v_tienthuoc FROM KETHUOC KT, THUOC TH
+            WHERE KT.MACA = HDMaCa AND KT.MATHUOC = TH.MATHUOC;
+    
+        SELECT NGAYCHUYENGANNHAT INTO v_ngaychuyenganhat FROM CABENH WHERE MACA = CBMaCa;
+        IF (v_maphong is not null) THEN
+            SELECT GIA1NGAY INTO giathuephong FROM PHONGBENH WHERE MAPHONG = v_maphong;
+            v_tienkham = v_tienkham + (giathuephong * (TRUNC(CURRENT_TIMESTAMP) - TRUNC(v_ngaychuyengannhat)));
+        END IF;
+    
+        v_tienkham = v_tienkham + v_tienthietbi + v_tienbenh;
+        v_tongtien = v_tienkham + v_tienthuoc;
+        
+        UPDATE HOADONVIENPHI
+            SET TONGTIEN = v_tongtien, TIENTHUOC = v_tienthuoc, TIENKHAM = v_tienkham
+            WHERE MAHD = HDMaHD;
+    END IF:
+end;
+/
+-- 60
+create or replace procedure proc_hoadonvienphi_xacnhanthanhtoan (
+                                                    HDMaHD HOADONVIENPHI.MAHD%TYPE,
+                                                    changedrows OUT INT
+                                                    )
+as
+    v_mahd HOADONVIENPHI.MAHD%TYPE;
+begin
+    SELECT MAHD INTO v_mahd FROM HOADONVIENPHI WHERE MAHD = HDMaHD; 
+    
+    UPDATE HOADONVIENPHI
+        SET TRANGTHAI = 1
+        WHERE MAHD = HDMaHD;
+    changedrows := SQL%ROWCOUNT;
+
+exception
+    when no_data_found then
+        raise_application_error(-20148, 'Khong ton tai hoa don nao voi ma tren');
+end;
+/
+-- 61
+create or replace procedure proc_hoadonvienphi_layhoadonvienphi_theobenhnhan (BNMaBN BENHNHAN.MABN%TYPE, p_result OUT SYS_REFCURSOR)
+as
+begin
+    OPEN p_result FOR SELECT HD.* FROM HOADONVIENPHI HD, CABENH CB 
+        WHERE HD.TONGTIEN > 0 AND HD.MACA = CB.MACA AND CB.MABN = BNMaBN
+        ORDER BY HD.MAHD DESC;
+end;
+/
+----------------------------------------------                                        
+-- 62
+create or replace procedure proc_lichhenkham_laylichhenkham (p_result OUT SYS_REFCURSOR)
+as
+begin
+    OPEN p_result FOR SELECT * FROM LICHHENKHAM ORDER BY MALICH DESC;
+end;
+/
+-- 63
+create or replace procedure proc_lichhenkham_them1lichhenkham (
+                                                    LHMaLich LICHHENKHAM.MALICH%TYPE,
+                                                    LHMaBN LICHHENKHAM.MABN%TYPE,
+                                                    LHNgayDuKien varchar,
+                                                    LHNhuCauKham LICHHENKHAM.NHUCAUKHAM%TYPE,
+                                                    changedrows OUT INT
+                                                    )
+as
+begin
+    INSERT INTO LICHHENKHAM VALUES (LHMaLich, LHMaBN, '', TO_TIMESTAMP(LHNgayDuKien,'DD/MM/YYYY HH24:MI:SS'), LHNhuCauKham, 0, 0);
+    changedrows := SQL%ROWCOUNT;
+end;
+/
+-- 64
+create or replace procedure proc_lichhenkham_xoa1lichhenkham (
+                                                    LHMaLich LICHHENKHAM.MALICH%TYPE,
+                                                    changedrows OUT INT
+                                                    )
+as
+begin
+    DELETE FROM LICHHENKHAM
+        WHERE MALICH = LHMaLich;
+    changedrows := SQL%ROWCOUNT;
+end;
+/
+-- 65
+create or replace procedure proc_lichhenkham_sua1lichhenkham (
+                                                                LHMaLich LICHHENKHAM.MALICH%TYPE,
+                                                                LHNgayDuKien varchar,
+                                                                LHNhuCauKham LICHHENKHAM.NHUCAUKHAM%TYPE,
+                                                                changedrows OUT INT
+                                                                )
+as
+    v_malich LICHHENKHAM.MALICH%TYPE;
+begin
+    SELECT MALICH INTO v_malich FROM LICHHENKHAM WHERE MALICH = LHMaLich;
+    
+    UPDATE LICHHENKHAM
+        SET NGAYDUKIEN = TO_TIMESTAMP(LHNgayDuKien,'DD/MM/YYYY HH24:MI:SS'), NHUCAUKHAM = LHNhuCauKham
+        WHERE MALICH = LHMaLich;
+    changedrows := SQL%ROWCOUNT;
+
+exception
+    when no_data_found then
+        raise_application_error(-20149, 'Khong ton tai lich hen kham nao voi ma tren');
+end;
+/
+-- 66
+create or replace procedure proc_lichhenkham_qlxacnhan (
+                                                        LHMaLich LICHHENKHAM.MALICH%TYPE,
+                                                        LHQLXacNhan LICHHENKHAM.QLXACNHAN%TYPE,
+                                                        changedrows OUT INT
+                                                        )
+as
+begin
+    UPDATE LICHHENKHAM
+        SET QLXACNHAN = LHQLXacNhan
+        WHERE MALICH = LHMaLich;
+    changedrows := SQL%ROWCOUNT;
+end;
+/
+-- 67
+create or replace procedure proc_lichhenkham_bndaxem (
+                                                        LHMaLich LICHHENKHAM.MALICH%TYPE,
+                                                        changedrows OUT INT
+                                                        )
+as
+begin
+    UPDATE LICHHENKHAM
+        SET BNXACNHAN = 1
+        WHERE MALICH = LHMaLich;
+    changedrows := SQL%ROWCOUNT;
+end;
+/
+-- 68
+create or replace procedure proc_lichhenkham_laylichhenkham_theobenhnhan (BNMaBN BENHNHAN.MABN%TYPE, p_result OUT SYS_REFCURSOR)
+as
+begin
+    OPEN p_result FOR SELECT * FROM LICHHENKHAM
+        WHERE MABN = BNMaBN
+        ORDER BY MALICH DESC;
+end;
+/
+-- 69
+create or replace procedure proc_lichhenkham_laylichhenkham_theobacsi (BSMaBS BACSI.MABS%TYPE, p_result OUT SYS_REFCURSOR)
+as
+begin
+    OPEN p_result FOR SELECT * FROM LICHHENKHAM
+        WHERE MABS = BSMaBS
+        ORDER BY MALICH DESC;
+end;
+/
+----------------------------------------------                                       
