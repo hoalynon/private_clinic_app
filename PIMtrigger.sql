@@ -380,3 +380,23 @@ begin
     end if;
 end; 
 /
+--TRIGGER CABENH
+--16
+create or replace trigger trg_cabenh_taohoadon
+after insert on CABENH
+for each row
+declare
+    stt number;
+    mahdganhat HOADONVIENPHI.MAHD%TYPE;
+    phandem HOADONVIENPHI.MAHD%TYPE := '';
+begin
+    SELECT A.MAHD INTO mahdgannhat FROM 
+    ( SELECT TOP 1 * FROM HOADONVIENPHI ORDER BY MAHD DESC) AS A;
+    stt := (regexp_replace(mahdgannhat, '[^0-9]', '') + 1);
+    IF (stt < 10) THEN
+        phandem := '00';
+    ELSE IF (stt < 100) THEN
+        phandem := '0';
+    END IF;
+    insert into hoadonvienphi values ('HD' || phandem || to_char(stt), :new.maca, current_timestamp, 0, 0, 0, 0, '');
+end;
