@@ -389,14 +389,20 @@ declare
     stt number;
     mahdgannhat HOADONVIENPHI.MAHD%TYPE;
     phandem HOADONVIENPHI.MAHD%TYPE := '';
+    dem number;
 begin
-    SELECT A.MAHD INTO mahdgannhat FROM 
-    ( SELECT B.* FROM (SELECT * FROM HOADONVIENPHI ORDER BY MAHD DESC) B WHERE ROWNUM = 1) A;
-    stt := (regexp_replace(mahdgannhat, '[^0-9]', '') + 1);
-    IF (stt < 10) THEN
-        phandem := '00';
-    ELSIF (stt < 100) THEN
-        phandem := '0';
+    SELECT COUNT(MAHD) INTO dem FROM HOADONVIENPHI ORDER BY MAHD DESC;
+    IF (dem = 0) THEN
+        insert into hoadonvienphi values ('HD001', :new.maca, current_timestamp, 0, 0, 0, 0, '');
+    ELSE
+        SELECT A.MAHD INTO mahdgannhat FROM 
+        ( SELECT B.* FROM (SELECT * FROM HOADONVIENPHI ORDER BY MAHD DESC) B WHERE ROWNUM = 1) A;
+        stt := (regexp_replace(mahdgannhat, '[^0-9]', '') + 1);
+        IF (stt < 10) THEN
+            phandem := '00';
+        ELSIF (stt < 100) THEN
+            phandem := '0';
+        END IF;
+        insert into hoadonvienphi values ('HD' || phandem || to_char(stt), :new.maca, current_timestamp, 0, 0, 0, 0, '');
     END IF;
-    insert into hoadonvienphi values ('HD' || phandem || to_char(stt), :new.maca, current_timestamp, 0, 0, 0, 0, '');
 end;
