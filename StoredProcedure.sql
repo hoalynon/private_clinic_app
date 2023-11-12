@@ -328,7 +328,7 @@ begin
     IF (v_maphongtruoc is not null and v_maphongtruoc <> CBMaPhong) THEN
         SELECT GIA1NGAY INTO giathuephong FROM PHONGBENH WHERE MAPHONG = v_maphongtruoc;
         UPDATE HOADONVIENPHI
-            SET TIENKHAM = TIENKHAM + (giathuephong * (TRUNC(CURRENT_TIMESTAMP) - TRUNC(v_ngaychuyengannhat)));
+            SET TIENKHAM = TIENKHAM + (giathuephong * (TRUNC(CURRENT_TIMESTAMP) - TRUNC(v_ngaychuyengannhat)))
         WHERE MACA = CBMaCa;
         v_ngaychuyengannhat := CURRENT_TIMESTAMP;
     END IF;
@@ -738,7 +738,7 @@ begin
     IF (v_maphongtruoc is not null and v_maphongtruoc <> CBMaPhong) THEN
         SELECT GIA1NGAY INTO giathuephong FROM PHONGBENH WHERE MAPHONG = v_maphongtruoc;
         UPDATE HOADONVIENPHI
-            SET TIENKHAM = TIENKHAM + (giathuephong * (TRUNC(CURRENT_TIMESTAMP) - TRUNC(v_ngaychuyengannhat)));
+            SET TIENKHAM = TIENKHAM + (giathuephong * (TRUNC(CURRENT_TIMESTAMP) - TRUNC(v_ngaychuyengannhat)))
         WHERE MACA = CBMaCa;
         v_ngaychuyengannhat := CURRENT_TIMESTAMP;
     END IF;
@@ -1033,7 +1033,7 @@ create or replace procedure proc_kethuoc_xoa1kethuoc (
 as
 begin
     DELETE FROM KETHUOC 
-        WHERE MACA = KTMaCa, MATHUOC = KTMaThuoc, NGAYKE = TO_TIMESTAMP(KTNgayKe,'DD/MM/YYYY HH24:MI:SS');
+        WHERE MACA = KTMaCa AND MATHUOC = KTMaThuoc AND NGAYKE = TO_TIMESTAMP(KTNgayKe,'DD/MM/YYYY HH24:MI:SS');
     changedrows := SQL%ROWCOUNT;
 end;
 /
@@ -1090,7 +1090,7 @@ create or replace procedure proc_hoadonvienphi_xoa1hoadonvienphi (
 as
 begin
     DELETE FROM HOADONVIENPHI 
-        WHERE MAHD = KTMaCa, MATHUOC = KTMaThuoc, NGAYKE = TO_TIMESTAMP(KTNgayKe,'DD/MM/YYYY HH24:MI:SS');
+        WHERE MAHD = KTMaCa AND MATHUOC = KTMaThuoc AND NGAYKE = TO_TIMESTAMP(KTNgayKe,'DD/MM/YYYY HH24:MI:SS');
     changedrows := SQL%ROWCOUNT;
 end;
 /
@@ -1117,9 +1117,9 @@ end;
 /
 -- 59
 create or replace procedure proc_hoadonvienphi_tinhhoadon (
-                                                    HDMaHD HOADONVIENPHI.MAHD%TYPE,
-                                                    HDMaCa HOADONVIENPHI.MACA%TYPE,
-                                                    )
+                                                            HDMaHD HOADONVIENPHI.MAHD%TYPE,
+                                                            HDMaCa HOADONVIENPHI.MACA%TYPE
+                                                            )
 as
     v_maphong CABENH.MAPHONG%TYPE;
     v_ngaychuyengannhat CABENH.NGAYCHUYENGANNHAT%TYPE;
@@ -1147,16 +1147,16 @@ begin
         SELECT NGAYCHUYENGANNHAT INTO v_ngaychuyenganhat FROM CABENH WHERE MACA = CBMaCa;
         IF (v_maphong is not null) THEN
             SELECT GIA1NGAY INTO giathuephong FROM PHONGBENH WHERE MAPHONG = v_maphong;
-            v_tienkham = v_tienkham + (giathuephong * (TRUNC(CURRENT_TIMESTAMP) - TRUNC(v_ngaychuyengannhat)));
+            v_tienkham := v_tienkham + (giathuephong * (TRUNC(CURRENT_TIMESTAMP) - TRUNC(v_ngaychuyengannhat)));
         END IF;
     
-        v_tienkham = v_tienkham + v_tienthietbi + v_tienbenh;
-        v_tongtien = v_tienkham + v_tienthuoc;
+        v_tienkham := v_tienkham + v_tienthietbi + v_tienbenh;
+        v_tongtien := v_tienkham + v_tienthuoc;
         
         UPDATE HOADONVIENPHI
             SET TONGTIEN = v_tongtien, TIENTHUOC = v_tienthuoc, TIENKHAM = v_tienkham
             WHERE MAHD = HDMaHD;
-    END IF:
+    END IF;
 end;
 /
 -- 60
