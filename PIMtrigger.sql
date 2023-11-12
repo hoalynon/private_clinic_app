@@ -387,15 +387,15 @@ after insert on CABENH
 for each row
 declare
     stt number;
-    mahdganhat HOADONVIENPHI.MAHD%TYPE;
+    mahdgannhat HOADONVIENPHI.MAHD%TYPE;
     phandem HOADONVIENPHI.MAHD%TYPE := '';
 begin
     SELECT A.MAHD INTO mahdgannhat FROM 
-    ( SELECT TOP 1 * FROM HOADONVIENPHI ORDER BY MAHD DESC) AS A;
+    ( SELECT B.* FROM (SELECT * FROM HOADONVIENPHI ORDER BY MAHD DESC) B WHERE ROWNUM = 1) A;
     stt := (regexp_replace(mahdgannhat, '[^0-9]', '') + 1);
     IF (stt < 10) THEN
         phandem := '00';
-    ELSE IF (stt < 100) THEN
+    ELSIF (stt < 100) THEN
         phandem := '0';
     END IF;
     insert into hoadonvienphi values ('HD' || phandem || to_char(stt), :new.maca, current_timestamp, 0, 0, 0, 0, '');
