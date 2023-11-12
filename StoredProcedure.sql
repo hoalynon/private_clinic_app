@@ -324,7 +324,7 @@ begin
     END IF;
 
     -- Kiem tra chuyen phong va tinh tien thue --
-    SELECT NGAYCHUYENGANNHAT INTO v_ngaychuyenganhat FROM CABENH WHERE MACA = CBMaCa;
+    SELECT NGAYCHUYENGANNHAT INTO v_ngaychuyengannhat FROM CABENH WHERE MACA = CBMaCa;
     IF (v_maphongtruoc is not null and v_maphongtruoc <> CBMaPhong) THEN
         SELECT GIA1NGAY INTO giathuephong FROM PHONGBENH WHERE MAPHONG = v_maphongtruoc;
         UPDATE HOADONVIENPHI
@@ -734,7 +734,7 @@ begin
     END IF;
 
         -- Kiem tra chuyen phong va tinh tien thue --
-    SELECT NGAYCHUYENGANNHAT INTO v_ngaychuyenganhat FROM CABENH WHERE MACA = CBMaCa;
+    SELECT NGAYCHUYENGANNHAT INTO v_ngaychuyengannhat FROM CABENH WHERE MACA = CBMaCa;
     IF (v_maphongtruoc is not null and v_maphongtruoc <> CBMaPhong) THEN
         SELECT GIA1NGAY INTO giathuephong FROM PHONGBENH WHERE MAPHONG = v_maphongtruoc;
         UPDATE HOADONVIENPHI
@@ -953,7 +953,7 @@ end;
 -- 48
 create or replace procedure proc_thuoc_them1thuoc (
                                                     THMaThuoc THUOC.MATHUOC%TYPE,
-                                                    THTenThuoc THUOC.TENTHIETBI%TYPE,
+                                                    THTenThuoc THUOC.TENTHUOC%TYPE,
                                                     THCongDung THUOC.CONGDUNG%TYPE,
                                                     THSLConLai THUOC.SLCONLAI%TYPE,
                                                     THGia THUOC.GIA%TYPE,
@@ -967,7 +967,7 @@ end;
 /
 -- 49
 create or replace procedure proc_thuoc_xoa1thuoc (
-                                                    THMaThuoc THUOC.MATHUOC,
+                                                    THMaThuoc THUOC.MATHUOC%TYPE,
                                                     changedrows OUT INT
                                                     )
 as
@@ -980,7 +980,7 @@ end;
 -- 50
 create or replace procedure proc_thuoc_sua1thuoc (
                                                     THMaThuoc THUOC.MATHUOC%TYPE,
-                                                    THTenThuoc THUOC.TENTHIETBI%TYPE,
+                                                    THTenThuoc THUOC.TENTHUOC%TYPE,
                                                     THCongDung THUOC.CONGDUNG%TYPE,
                                                     THSLConLai THUOC.SLCONLAI%TYPE,
                                                     THGia THUOC.GIA%TYPE,
@@ -1078,7 +1078,7 @@ create or replace procedure proc_hoadonvienphi_them1hoadonvienphi (
                                                     )
 as
 begin
-    INSERT INTO HOADONVIENPHI VALUES (HDMaHD, KTMaThuoc, TO_TIMESTAMP(HDNgayLap,'DD/MM/YYYY HH24:MI:SS'), 0, 0, 0, 0, '');
+    INSERT INTO HOADONVIENPHI VALUES (HDMaHD, HDMaCa, TO_TIMESTAMP(HDNgayLap,'DD/MM/YYYY HH24:MI:SS'), 0, 0, 0, 0, HDGhiChu);
     changedrows := SQL%ROWCOUNT;
 end;
 /
@@ -1090,7 +1090,7 @@ create or replace procedure proc_hoadonvienphi_xoa1hoadonvienphi (
 as
 begin
     DELETE FROM HOADONVIENPHI 
-        WHERE MAHD = KTMaCa AND MATHUOC = KTMaThuoc AND NGAYKE = TO_TIMESTAMP(KTNgayKe,'DD/MM/YYYY HH24:MI:SS');
+        WHERE MAHD = HDMaHD;
     changedrows := SQL%ROWCOUNT;
 end;
 /
@@ -1117,9 +1117,9 @@ end;
 /
 -- 59
 create or replace procedure proc_hoadonvienphi_tinhhoadon (
-                                                            HDMaHD HOADONVIENPHI.MAHD%TYPE,
-                                                            HDMaCa HOADONVIENPHI.MACA%TYPE
-                                                            )
+                                                    HDMaHD HOADONVIENPHI.MAHD%TYPE,
+                                                    HDMaCa HOADONVIENPHI.MACA%TYPE
+                                                    )
 as
     v_maphong CABENH.MAPHONG%TYPE;
     v_ngaychuyengannhat CABENH.NGAYCHUYENGANNHAT%TYPE;
@@ -1144,7 +1144,7 @@ begin
         SELECT SUM(KT.SL * TH.GIA) INTO v_tienthuoc FROM KETHUOC KT, THUOC TH
             WHERE KT.MACA = HDMaCa AND KT.MATHUOC = TH.MATHUOC;
     
-        SELECT NGAYCHUYENGANNHAT INTO v_ngaychuyenganhat FROM CABENH WHERE MACA = CBMaCa;
+        SELECT NGAYCHUYENGANNHAT INTO v_ngaychuyengannhat FROM CABENH WHERE MACA = HDMaCa;
         IF (v_maphong is not null) THEN
             SELECT GIA1NGAY INTO giathuephong FROM PHONGBENH WHERE MAPHONG = v_maphong;
             v_tienkham := v_tienkham + (giathuephong * (TRUNC(CURRENT_TIMESTAMP) - TRUNC(v_ngaychuyengannhat)));
