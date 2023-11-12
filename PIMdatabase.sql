@@ -1,4 +1,8 @@
 delete from dieuphoithietbi;
+delete from kethuoc;
+delete from thuoc;
+delete from hoadonvienphi;
+delete from lichhenkham;
 delete from cabenh;
 delete from thietbiyte;
 delete from phongbenh;
@@ -10,6 +14,10 @@ delete from taikhoan;
 commit;
 
 drop table dieuphoithietbi;
+drop table kethuoc;
+drop table thuoc;
+drop table hoadonvienphi;
+drop table lichhenkham;
 drop table cabenh;
 drop table thietbiyte;
 drop table phongbenh;
@@ -45,6 +53,7 @@ CREATE TABLE BENHNHAN
 	NgaySinh DATE NOT NULL,
 	QueQuan VARCHAR(100),
 	NoiOHienTai VARCHAR(100),
+	KhaNangDatLich NUMBER,
 	CONSTRAINT PK_BENHNHAN PRIMARY KEY (MaBN)
 );
 
@@ -57,7 +66,7 @@ create table benh
     tenkhoa varchar(50) NOT NULL,
     gia integer NOT NULL,
     constraint pk_benh primary key (mabenh),
-    constraint ck_gia check (gia >= 0),
+    constraint ck_benh_gia check (gia >= 0),
     CONSTRAINT CK_BENH_TENKHOA CHECK(TENKHOA IN ('Hoi Suc Cap Cuu', 'Noi Tong Hop', 'Noi Tim Mach', 'Noi Tieu Hoa', 'Noi Co-Xuong-Khop', 'Noi Than-Tiet Nieu','Noi Tiet','Di Ung','Truyen Nhiem','Lao','Da Lieu','Than Kinh', 'Tam Than','Y Hoc Co Truyen','Nhi','Ngoai Tong Hop','Chan Thuong Chinh Hinh','Bong','Phu San','Tai-Mui-Hong','Rang-Ham-Mat','Mat','Vat Ly Tri Lieu','Y Hoc Hat Nhat','Truyen Mau','Loc Mau','Hoa Sinh','Vi Sinh','Chuan Doan Hinh Anh','Noi Soi','Duoc','Dinh Duong','Cap Cuu','Ung Buou'))
 );
 
@@ -73,7 +82,7 @@ create table phongbenh
     controng number,
     gia1ngay integer,
     constraint pk_phongbenh primary key (maphong),
-    constraint ck_gia1ngay check (gia1ngay >= 0)
+    constraint ck_phongbenh_gia1ngay check (gia1ngay >= 0)
 );
 commit;
 
@@ -109,7 +118,7 @@ create table thietbiyte
     slconlai number,
     gia integer,
     constraint pk_thietbiyte primary key (mathietbi),
-    constraint ck_gia check (gia >= 0)
+    constraint ck_thietbiyte_gia check (gia >= 0)
 );
 
 commit;
@@ -139,27 +148,59 @@ commit;
 
 create table thuoc
 (
-    tendangnhap varchar(10),
-    matkhau varchar(100),
-    constraint pk_taikhoan primary key (tendangnhap)
+    mathuoc varchar(10),
+    tenthuoc varchar2(50) NOT NULL,
+    congdung varchar2(200) NOT NULL,
+    slconlai number NOT NULL,
+    gia integer,
+    constraint pk_thuoc primary key (mathuoc),
+    constraint ck_thuoc_gia check (gia >= 0),
+    constraint ck_thuoc_slconlai check (slconlai >= 0)
 );
 
 commit;
 
 create table kethuoc
 (
-    tendangnhap varchar(10),
-    matkhau varchar(100),
-    constraint pk_taikhoan primary key (tendangnhap)
+    maca varchar(10),
+    mathuoc varchar(10),
+    ngayke timestamp,
+    sl number,
+    constraint pk_kethuoc primary key (maca, mathuoc, ngayke),
+    constraint fk_kethuoc_maca foreign key (maca) references cabenh(maca),
+    constraint fk_kethuoc_mathuoc foreign key (mathuoc) references thuoc(mathuoc),
+    constraint ck_kethuoc_sl check (sl >= 0)
 );
 
 commit;
 
 create table hoadonvienphi
 (
-    tendangnhap varchar(10),
-    matkhau varchar(100),
-    constraint pk_taikhoan primary key (tendangnhap)
+    mahd varchar(10),
+    maca varchar(10) not null,
+    ngaylap timestamp not null,
+    tongtien integer not null,
+    tienthuoc integer not null,
+    tienkham integer not null,
+    trangthai number not null,
+    ghichu varchar2(500),
+    constraint fk_hoadonvienphi_maca foreign key (maca) references cabenh(maca),
+    constraint pk_hoadonvienphi primary key (hoadonvienphi)
+);
+
+commit;
+
+create table lichhenkham
+(
+    malich varchar(10),
+    mabn varchar(10) not null,
+    mabs varchar(10),
+    ngaydukien timestamp not null,
+    nhucaukham varchar2(500) not null,
+    qlxacnhan number not null,
+    bnxacnhan number not null,
+    constraint pk_lichhenkham primary key (malich),
+    constraint fk_lichhenkham_mabn foreign key (mabn) references benhnhan(mabn)
 );
 
 commit;
@@ -354,65 +395,65 @@ INSERT INTO CABENH VALUES ('CA002','BN002', 'BS006', 'BE022', 'Nang', 'Tai gia',
 INSERT INTO CABENH VALUES ('CA003','BN003', 'BS013', 'BE016', 'Khong cap cuu', 'Nhap vien', TO_TIMESTAMP('15/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('20/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', 'PH101', TO_TIMESTAMP('15/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
 INSERT INTO CABENH VALUES ('CA004','BN004', 'BS014', 'BE017', 'Cham soc dac biet', 'Nhap vien', TO_TIMESTAMP('30/04/2022 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('06/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', 'PH101', TO_TIMESTAMP('30/04/2022 00:00:00','DD/MM/YYYY HH24:MI:SS'));
 INSERT INTO CABENH VALUES ('CA005','BN005', 'BS011', 'BE018', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('14/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('20/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH102', TO_TIMESTAMP('14/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
-INSERT INTO CABENH VALUES ('CA006','BN006', 'BS015', 'BE011', 'Nang', 'Tai gia', TO_TIMESTAMP('28/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('04/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', null);
-INSERT INTO CABENH VALUES ('CA007','BN007', 'BS010', 'BE019', 'Cap cuu', 'Nhap vien', TO_TIMESTAMP('02/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('08/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Cham soc', 'PH103');
-INSERT INTO CABENH VALUES ('CA008','BN008', 'BS016', 'BE004', 'Khong cap cuu', 'Nhap vien', TO_TIMESTAMP('09/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('15/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', 'PH104');
-INSERT INTO CABENH VALUES ('CA009','BN009', 'BS020', 'BE003', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('13/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('20/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH208');
-INSERT INTO CABENH VALUES ('CA010','BN010', 'BS008', 'BE006', 'Cham soc dac biet', 'Tai gia', TO_TIMESTAMP('27/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('02/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', null);
-INSERT INTO CABENH VALUES ('CA011','BN011', 'BS008', 'BE007', 'Cap cuu', 'Cach ly', TO_TIMESTAMP('10/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('16/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH301');
-INSERT INTO CABENH VALUES ('CA012','BN012', 'BS001', 'BE012', 'Nang', 'Tai gia', TO_TIMESTAMP('23/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('28/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', null);
-INSERT INTO CABENH VALUES ('CA013','BN013', 'BS017', 'BE013', 'Khong cap cuu', 'Nhap vien', TO_TIMESTAMP('19/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('25/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH105');
-INSERT INTO CABENH VALUES ('CA014','BN014', 'BS004', 'BE002', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('06/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('12/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Cham soc', 'PH106');
-INSERT INTO CABENH VALUES ('CA015','BN015', 'BS006', 'BE021', 'Cap cuu', 'Nhap vien', TO_TIMESTAMP('11/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('17/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH107');
-INSERT INTO CABENH VALUES ('CA016','BN016', 'BS012', 'BE014', 'Cham soc dac biet', 'Nhap vien', TO_TIMESTAMP('25/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('30/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', 'PH108');
-INSERT INTO CABENH VALUES ('CA017','BN017', 'BS015', 'BE014', 'Cap cuu', 'Tai gia', TO_TIMESTAMP('09/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('15/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', null);
-INSERT INTO CABENH VALUES ('CA018','BN018', 'BS009', 'BE003', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('16/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('23/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH109');
-INSERT INTO CABENH VALUES ('CA019','BN019', 'BS007', 'BE022', 'Cham soc dac biet', 'Tai gia', TO_TIMESTAMP('20/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('26/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', null);
-INSERT INTO CABENH VALUES ('CA020','BN020', 'BS002', 'BE023', 'Cap cuu', 'Nhap vien', TO_TIMESTAMP('01/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('06/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Cham soc', 'PH110');
-INSERT INTO CABENH VALUES ('CA021','BN021', 'BS005', 'BE024', 'Nang', 'Tai gia', TO_TIMESTAMP('14/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('20/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', null);
-INSERT INTO CABENH VALUES ('CA022','BN022', 'BS003', 'BE001', 'Khong cap cuu', 'Nhap vien', TO_TIMESTAMP('28/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('03/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH111');
-INSERT INTO CABENH VALUES ('CA023','BN023', 'BS008', 'BE008', 'Hoi suc', 'Cach ly', TO_TIMESTAMP('03/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('10/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH301');
-INSERT INTO CABENH VALUES ('CA024','BN024', 'BS018', 'BE025', 'Cham soc dac biet', 'Nhap vien', TO_TIMESTAMP('11/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('17/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', 'PH112');
-INSERT INTO CABENH VALUES ('CA025','BN025', 'BS001', 'BE015', 'Cap cuu', 'Tai gia', TO_TIMESTAMP('24/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('30/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', null);
-INSERT INTO CABENH VALUES ('CA026','BN026', 'BS003', 'BE001', 'Nang', 'Nhap vien', TO_TIMESTAMP('08/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('14/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH113');
-INSERT INTO CABENH VALUES ('CA027','BN027', 'BS008', 'BE009', 'Khong cap cuu', 'Tai gia', TO_TIMESTAMP('16/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('22/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', null);
-INSERT INTO CABENH VALUES ('CA028','BN028', 'BS014', 'BE019', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('19/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('25/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Cham soc', 'PH114');
-INSERT INTO CABENH VALUES ('CA029','BN029', 'BS010', 'BE020', 'Cham soc dac biet', 'Nhap vien', TO_TIMESTAMP('02/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('08/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', 'PH115');
-INSERT INTO CABENH VALUES ('CA030','BN030', 'BS017', 'BE014', 'Cap cuu', 'Nhap vien', TO_TIMESTAMP('13/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('19/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH116');
-INSERT INTO CABENH VALUES ('CA031','BN031', 'BS013', 'BE016', 'Khong cap cuu', 'Nhap vien', TO_TIMESTAMP('16/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('22/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH117');
-INSERT INTO CABENH VALUES ('CA032','BN032', 'BS009', 'BE004', 'Cham soc dac biet', 'Tai gia', TO_TIMESTAMP('29/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('04/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', null);
-INSERT INTO CABENH VALUES ('CA033','BN033', 'BS012', 'BE011', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('03/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('09/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH118');
-INSERT INTO CABENH VALUES ('CA034','BN034', 'BS002', 'BE021', 'Cap cuu', 'Tai gia', TO_TIMESTAMP('10/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('16/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', null);
-INSERT INTO CABENH VALUES ('CA035','BN035', 'BS017', 'BE012', 'Nang', 'Nhap vien', TO_TIMESTAMP('22/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('28/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH119');
-INSERT INTO CABENH VALUES ('CA036','BN036', 'BS008', 'BE010', 'Cham soc dac biet', 'Cach ly', TO_TIMESTAMP('07/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('13/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', 'PH304');
-INSERT INTO CABENH VALUES ('CA037','BN037', 'BS010', 'BE019', 'Khong cap cuu', 'Tai gia', TO_TIMESTAMP('20/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('26/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', null);
-INSERT INTO CABENH VALUES ('CA038','BN038', 'BS004', 'BE002', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('04/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('10/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH120');
-INSERT INTO CABENH VALUES ('CA039','BN039', 'BS007', 'BE023', 'Cap cuu', 'Tai gia', TO_TIMESTAMP('17/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('23/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', null);
-INSERT INTO CABENH VALUES ('CA040','BN040', 'BS019', 'BE005', 'Nang', 'Nhap vien', TO_TIMESTAMP('30/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('06/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH201');
-INSERT INTO CABENH VALUES ('CA041','BN041', 'BS014', 'BE017', 'Khong cap cuu', 'Nhap vien', TO_TIMESTAMP('13/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('19/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Cham soc', 'PH202');
-INSERT INTO CABENH VALUES ('CA042','BN042', 'BS011', 'BE018', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('26/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('03/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', 'PH203');
-INSERT INTO CABENH VALUES ('CA043','BN043', 'BS006', 'BE024', 'Cap cuu', 'Tai gia', TO_TIMESTAMP('09/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('15/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', null);
-INSERT INTO CABENH VALUES ('CA044','BN044', 'BS018', 'BE022', 'Nang', 'Nhap vien', TO_TIMESTAMP('22/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('28/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH204');
-INSERT INTO CABENH VALUES ('CA045','BN045', 'BS016', 'BE005', 'Cham soc dac biet', 'Tai gia', TO_TIMESTAMP('03/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('09/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', null);
-INSERT INTO CABENH VALUES ('CA046','BN046', 'BS005', 'BE025', 'Khong cap cuu', 'Nhap vien', TO_TIMESTAMP('17/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('23/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', 'PH205');
-INSERT INTO CABENH VALUES ('CA047','BN047', 'BS001', 'BE013', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('29/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('04/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', 'PH206');
-INSERT INTO CABENH VALUES ('CA048','BN048', 'BS015', 'BE014', 'Cap cuu', 'Tai gia', TO_TIMESTAMP('11/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('17/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', null);
-INSERT INTO CABENH VALUES ('CA049','BN049', 'BS010', 'BE020', 'Nang', 'Nhap vien', TO_TIMESTAMP('25/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('01/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH207');
-INSERT INTO CABENH VALUES ('CA050','BN050', 'BS008', 'BE009', 'Cham soc dac biet', 'Cach ly', TO_TIMESTAMP('08/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('14/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', 'PH305');
+INSERT INTO CABENH VALUES ('CA006','BN006', 'BS015', 'BE011', 'Nang', 'Tai gia', TO_TIMESTAMP('28/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('04/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', null, TO_TIMESTAMP('28/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA007','BN007', 'BS010', 'BE019', 'Cap cuu', 'Nhap vien', TO_TIMESTAMP('02/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('08/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Cham soc', 'PH103', TO_TIMESTAMP('02/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA008','BN008', 'BS016', 'BE004', 'Khong cap cuu', 'Nhap vien', TO_TIMESTAMP('09/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('15/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', 'PH104', TO_TIMESTAMP('09/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA009','BN009', 'BS020', 'BE003', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('13/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('20/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH208', TO_TIMESTAMP('13/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA010','BN010', 'BS008', 'BE006', 'Cham soc dac biet', 'Tai gia', TO_TIMESTAMP('27/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('02/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', null, TO_TIMESTAMP('27/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA011','BN011', 'BS008', 'BE007', 'Cap cuu', 'Cach ly', TO_TIMESTAMP('10/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('16/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH301', TO_TIMESTAMP('10/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA012','BN012', 'BS001', 'BE012', 'Nang', 'Tai gia', TO_TIMESTAMP('23/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('28/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', null, TO_TIMESTAMP('23/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA013','BN013', 'BS017', 'BE013', 'Khong cap cuu', 'Nhap vien', TO_TIMESTAMP('19/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('25/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH105', TO_TIMESTAMP('19/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA014','BN014', 'BS004', 'BE002', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('06/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('12/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Cham soc', 'PH106', TO_TIMESTAMP('06/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA015','BN015', 'BS006', 'BE021', 'Cap cuu', 'Nhap vien', TO_TIMESTAMP('11/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('17/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH107', TO_TIMESTAMP('11/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA016','BN016', 'BS012', 'BE014', 'Cham soc dac biet', 'Nhap vien', TO_TIMESTAMP('25/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('30/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', 'PH108', TO_TIMESTAMP('25/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA017','BN017', 'BS015', 'BE014', 'Cap cuu', 'Tai gia', TO_TIMESTAMP('09/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('15/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', null, TO_TIMESTAMP('09/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA018','BN018', 'BS009', 'BE003', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('16/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('23/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH109', TO_TIMESTAMP('16/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA019','BN019', 'BS007', 'BE022', 'Cham soc dac biet', 'Tai gia', TO_TIMESTAMP('20/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('26/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', null, TO_TIMESTAMP('20/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA020','BN020', 'BS002', 'BE023', 'Cap cuu', 'Nhap vien', TO_TIMESTAMP('01/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('06/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Cham soc', 'PH110', TO_TIMESTAMP('01/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA021','BN021', 'BS005', 'BE024', 'Nang', 'Tai gia', TO_TIMESTAMP('14/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('20/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', null, TO_TIMESTAMP('14/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA022','BN022', 'BS003', 'BE001', 'Khong cap cuu', 'Nhap vien', TO_TIMESTAMP('28/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('03/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH111', TO_TIMESTAMP('28/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA023','BN023', 'BS008', 'BE008', 'Hoi suc', 'Cach ly', TO_TIMESTAMP('03/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('10/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH301', TO_TIMESTAMP('03/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA024','BN024', 'BS018', 'BE025', 'Cham soc dac biet', 'Nhap vien', TO_TIMESTAMP('11/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('17/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', 'PH112', TO_TIMESTAMP('11/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA025','BN025', 'BS001', 'BE015', 'Cap cuu', 'Tai gia', TO_TIMESTAMP('24/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('30/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', null, TO_TIMESTAMP('24/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA026','BN026', 'BS003', 'BE001', 'Nang', 'Nhap vien', TO_TIMESTAMP('08/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('14/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH113', TO_TIMESTAMP('08/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA027','BN027', 'BS008', 'BE009', 'Khong cap cuu', 'Tai gia', TO_TIMESTAMP('16/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('22/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', null, TO_TIMESTAMP('16/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA028','BN028', 'BS014', 'BE019', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('19/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('25/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Cham soc', 'PH114', TO_TIMESTAMP('19/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA029','BN029', 'BS010', 'BE020', 'Cham soc dac biet', 'Nhap vien', TO_TIMESTAMP('02/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('08/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', 'PH115', TO_TIMESTAMP('02/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA030','BN030', 'BS017', 'BE014', 'Cap cuu', 'Nhap vien', TO_TIMESTAMP('13/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('19/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH116', TO_TIMESTAMP('13/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA031','BN031', 'BS013', 'BE016', 'Khong cap cuu', 'Nhap vien', TO_TIMESTAMP('16/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('22/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH117', TO_TIMESTAMP('16/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA032','BN032', 'BS009', 'BE004', 'Cham soc dac biet', 'Tai gia', TO_TIMESTAMP('29/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('04/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', null, TO_TIMESTAMP('29/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA033','BN033', 'BS012', 'BE011', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('03/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('09/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH118', TO_TIMESTAMP('03/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA034','BN034', 'BS002', 'BE021', 'Cap cuu', 'Tai gia', TO_TIMESTAMP('10/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('16/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', null, TO_TIMESTAMP('10/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA035','BN035', 'BS017', 'BE012', 'Nang', 'Nhap vien', TO_TIMESTAMP('22/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('28/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH119', TO_TIMESTAMP('22/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA036','BN036', 'BS008', 'BE010', 'Cham soc dac biet', 'Cach ly', TO_TIMESTAMP('07/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('13/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', 'PH304', TO_TIMESTAMP('07/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA037','BN037', 'BS010', 'BE019', 'Khong cap cuu', 'Tai gia', TO_TIMESTAMP('20/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('26/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', null, TO_TIMESTAMP('20/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA038','BN038', 'BS004', 'BE002', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('04/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('10/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH120', TO_TIMESTAMP('04/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA039','BN039', 'BS007', 'BE023', 'Cap cuu', 'Tai gia', TO_TIMESTAMP('17/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('23/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', null, TO_TIMESTAMP('17/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA040','BN040', 'BS019', 'BE005', 'Nang', 'Nhap vien', TO_TIMESTAMP('30/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('06/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH201', TO_TIMESTAMP('30/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA041','BN041', 'BS014', 'BE017', 'Khong cap cuu', 'Nhap vien', TO_TIMESTAMP('13/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('19/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Cham soc', 'PH202', TO_TIMESTAMP('13/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA042','BN042', 'BS011', 'BE018', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('26/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('03/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', 'PH203', TO_TIMESTAMP('26/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA043','BN043', 'BS006', 'BE024', 'Cap cuu', 'Tai gia', TO_TIMESTAMP('09/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('15/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', null, TO_TIMESTAMP('09/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA044','BN044', 'BS018', 'BE022', 'Nang', 'Nhap vien', TO_TIMESTAMP('22/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('28/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', 'PH204', TO_TIMESTAMP('22/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA045','BN045', 'BS016', 'BE005', 'Cham soc dac biet', 'Tai gia', TO_TIMESTAMP('03/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('09/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', null, TO_TIMESTAMP('03/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA046','BN046', 'BS005', 'BE025', 'Khong cap cuu', 'Nhap vien', TO_TIMESTAMP('17/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('23/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', 'PH205', TO_TIMESTAMP('17/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA047','BN047', 'BS001', 'BE013', 'Hoi suc', 'Nhap vien', TO_TIMESTAMP('29/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('04/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Trieu chung', 'PH206', TO_TIMESTAMP('29/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA048','BN048', 'BS015', 'BE014', 'Cap cuu', 'Tai gia', TO_TIMESTAMP('11/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('17/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Dieu tri', null, TO_TIMESTAMP('11/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA049','BN049', 'BS010', 'BE020', 'Nang', 'Nhap vien', TO_TIMESTAMP('25/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('01/07/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Giam sat', 'PH207', TO_TIMESTAMP('25/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
+INSERT INTO CABENH VALUES ('CA050','BN050', 'BS008', 'BE009', 'Cham soc dac biet', 'Cach ly', TO_TIMESTAMP('08/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), TO_TIMESTAMP('14/06/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'), 'Chuan doan', 'PH305', TO_TIMESTAMP('08/05/2023 00:00:00','DD/MM/YYYY HH24:MI:SS'));
 
 commit;
 
-INSERT INTO THIETBIYTE VALUES ('TB001', 'Nhiet ke', 'Tai su dung', 'Do nhiet do co the', 1201, 1201);
-INSERT INTO THIETBIYTE VALUES ('TB002', 'May huyet ap', 'Tai su dung', 'Do huyet ap', 145, 145);
-INSERT INTO THIETBIYTE VALUES ('TB003', 'Binh oxy', '1 lan', 'Cung cap oxy', 546, 546);
-INSERT INTO THIETBIYTE VALUES ('TB004', 'May chup X-quang', 'Tai su dung', 'Tao hinh anh X-quang', 55, 55);
-INSERT INTO THIETBIYTE VALUES ('TB005', 'May sieu am', 'Tai su dung', 'Tao hinh anh sieu am', 43, 43);
-INSERT INTO THIETBIYTE VALUES ('TB006', 'May ECG', 'Tai su dung', 'Do hoat dong dien cua tim', 237, 237);
-INSERT INTO THIETBIYTE VALUES ('TB007', 'Bang dieu khien tiem', 'Tai su dung', 'Kiem soat tiem thuoc va dung dich',378, 378);
-INSERT INTO THIETBIYTE VALUES ('TB008', 'Dao phau thuat', 'Tai su dung', 'Cat va mo', 878, 878);
-INSERT INTO THIETBIYTE VALUES ('TB009', 'Den noi soi', 'Tai su dung', 'Kiem tra va can thiep noi soi', 179, 179);
-INSERT INTO THIETBIYTE VALUES ('TB010', 'May ho hap nhan tao', 'Tai su dung', 'Ho tro ho hap', 412, 412);
-INSERT INTO THIETBIYTE VALUES ('TB011', 'Ong tiem', '1 lan', 'Tiem thuoc cho benh nhan', 412, 412);
+INSERT INTO THIETBIYTE VALUES ('TB001', 'Nhiet ke', 'Tai su dung', 'Do nhiet do co the', 1201, 1201, 0);
+INSERT INTO THIETBIYTE VALUES ('TB002', 'May huyet ap', 'Tai su dung', 'Do huyet ap', 145, 145, 20000);
+INSERT INTO THIETBIYTE VALUES ('TB003', 'Binh oxy 10 lit', '1 lan', 'Cung cap oxy', 546, 546, 1500000);
+INSERT INTO THIETBIYTE VALUES ('TB004', 'May chup X-quang', 'Tai su dung', 'Tao hinh anh X-quang', 55, 55, 150000);
+INSERT INTO THIETBIYTE VALUES ('TB005', 'May sieu am', 'Tai su dung', 'Tao hinh anh sieu am', 43, 43, 300000);
+INSERT INTO THIETBIYTE VALUES ('TB006', 'May ECG', 'Tai su dung', 'Do hoat dong dien cua tim', 237, 237, 50000);
+INSERT INTO THIETBIYTE VALUES ('TB007', 'May chay than', 'Tai su dung', 'Chay than cap cuu va loc mau', 378, 378, 800000);
+INSERT INTO THIETBIYTE VALUES ('TB008', 'Dao phau thuat', 'Tai su dung', 'Cat va mo', 878, 878, 0);
+INSERT INTO THIETBIYTE VALUES ('TB009', 'May noi soi tieu hoa', 'Tai su dung', 'Kiem tra suc khoe duong tieu hoa', 179, 179, 2400000);
+INSERT INTO THIETBIYTE VALUES ('TB010', 'May ho hap nhan tao', 'Tai su dung', 'Ho tro ho hap', 412, 412, 1500000);
+INSERT INTO THIETBIYTE VALUES ('TB011', 'Ong tiem', '1 lan', 'Tiem thuoc cho benh nhan', 412, 412, 2000);
 
 commit;
 
