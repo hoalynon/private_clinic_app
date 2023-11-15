@@ -21,6 +21,7 @@ begin
     IF tongso IS NULL THEN
         RETURN 0;
     END IF;
+    commit;
     return tongso;
 end;
 /
@@ -59,6 +60,7 @@ as
 begin
     INSERT INTO BACSI VALUES (BSMaBS, BSHoTen, BSGioiTinh, TO_DATE(BSNgaySinh,'DD/MM/YYYY'), BSQueQuan, BSNoiOHienTai, BSTenKhoa, BSNamPhucVu);
     changedrows := SQL%ROWCOUNT;
+    commit;
 end;
 /
 -- 5
@@ -72,6 +74,7 @@ begin
     DELETE FROM BACSI 
         WHERE MABS = BSMaBS;
     changedrows := SQL%ROWCOUNT;
+    commit;
 end;
 /
 -- 6
@@ -94,6 +97,7 @@ begin
         SET HOTEN = BSHoTen, GIOITINH = BSGioiTinh, NGAYSINH = TO_DATE(BSNgaySinh,'DD/MM/YYYY'), QUEQUAN = BSQueQuan, NOIOHIENTAI = BSNoiOHienTai, TENKHOA = BSTenKhoa, NAMPHUCVU = BSNamPhucVu
         WHERE MABS = BSMaBS;
     changedrows := SQL%ROWCOUNT;
+    commit;
 exception
     when no_data_found then
         raise_application_error(-20134, 'Khong ton tai bac si nao voi ma tren');
@@ -119,6 +123,7 @@ as
 begin
     INSERT INTO BENH VALUES (BEMaBenh, BETenBenh, BETenKhoa, BEGia);
     changedrows := SQL%ROWCOUNT;
+    commit;
 end;
 /
 -- 9
@@ -131,6 +136,7 @@ begin
     DELETE FROM BENH 
         WHERE MABENH = BEMaBenh;
     changedrows := SQL%ROWCOUNT;
+    commit;
 end ;
 /
 -- 10
@@ -149,6 +155,7 @@ begin
         SET TENBENH = BETenBenh, TENKHOA = BETenKhoa, GIA = BEGia
         WHERE MABENH = BEMaBenh;
     changedrows := SQL%ROWCOUNT;
+    commit;
 exception
     when no_data_found then
         raise_application_error(-20135, 'Khong ton tai benh nao voi ma tren');
@@ -177,6 +184,7 @@ as
 begin
     INSERT INTO BENHNHAN VALUES (BNMaBN, BNHoTen, BNGioiTinh, TO_DATE(BNNgaySinh,'DD/MM/YYYY'), BNQueQuan, BNNoiOHienTai, 1);
     changedrows := SQL%ROWCOUNT;
+    commit;
 end;
 /
 -- 13
@@ -189,6 +197,7 @@ begin
     DELETE FROM BENHNHAN 
         WHERE MABN = BNMaBN;
     changedrows := SQL%ROWCOUNT;
+    commit;
 end;
 /
 -- 14
@@ -210,6 +219,7 @@ begin
         SET HOTEN = BNHoTen, GIOITINH = BNGioiTinh, NGAYSINH = TO_DATE(BNNgaySinh,'DD/MM/YYYY'), QUEQUAN = BNQueQuan, NOIOHIENTAI = BNNoiOHienTai, KHANANGDATLICH = BNKhaNangDatLich
         WHERE MABN = BNMaBN;
     changedrows := SQL%ROWCOUNT;
+    commit;    
 exception
     when no_data_found then
         raise_application_error(-20136, 'Khong ton tai benh nhan nao voi ma tren');
@@ -255,6 +265,7 @@ begin
     UPDATE CABENH SET MAPHONG = CBMaPhong WHERE MABN = CBMaBN;
     
     UPDATE PHONGBENH SET CONTRONG = SUCCHUA - func_phongbenh_tinhsisophong(MAPHONG);
+    commit;
 exception
     when khongcontrong then
         raise_application_error('-20105','Phong da day');
@@ -276,6 +287,7 @@ begin
     IF v_maphongtruoc IS NOT NULL THEN
        UPDATE PHONGBENH SET CONTRONG = SUCCHUA - func_phongbenh_tinhsisophong(v_maphongtruoc);
     END IF;
+    commit;
 end;
 /
 -- 18
@@ -299,6 +311,7 @@ as
     ngaydaketthuc EXCEPTION;
     v_ngaychuyengannhat CABENH.NGAYCHUYENGANNHAT%TYPE;
     giathuephong PHONGBENH.GIA1NGAY%TYPE;
+    v_mahd HOADONVIENPHI.MAHD%TYPE;
 begin
     -- Kiem tra su ton tai cua ca benh --
     SELECT MACA INTO v_maca FROM CABENH WHERE MACA = CBMaCa;
@@ -307,6 +320,12 @@ begin
     SELECT TINHTRANG INTO v_tinhtrangtruoc FROM CABENH WHERE MACA = CBMaCa;
     IF v_tinhtrangtruoc = 'Da ket thuc' THEN
         RAISE cadaketthuc;
+    END IF;
+ 
+    -- Tinh hoa don khi vua ket thuc --
+    SELECT MAHD INTO v_mahd FROM HOADONVIENPHI WHERE MACA = CBMaCa;
+    IF v_tinhtrangtruoc <> 'Da ket thuc' AND CBTinhTrang = 'Da ket thuc' THEN
+        proc_hoadonvienphi_tinhhoadon(v_mahd, CBMaCa);
     END IF;
     
      -- Kiem tra ngay ket thuc khong nho hon ngay hien tai --
@@ -354,6 +373,7 @@ begin
     
     -- Cap nhat so luong thiet bi --
     UPDATE THIETBIYTE SET SLCONLAI = SLTONG - func_thietbiyte_tinhsothietbidieuphoi(MATHIETBI) WHERE LOAISD = 'Tai su dung';
+    commit;
 exception
     when no_data_found then
         raise_application_error (-20133, 'Khong ton tai ca benh nao voi ma tren');
@@ -404,6 +424,7 @@ begin
     changedrows := SQL%ROWCOUNT;
     UPDATE THIETBIYTE SET SLCONLAI = SLCONLAI - DPSoLuong WHERE MATHIETBI = DPMaThietBi;
     UPDATE THIETBIYTE SET SLTONG = SLCONLAI WHERE MATHIETBI = DPMaThietBi AND LOAISD = '1 lan';
+    commit;
 exception
     when tinhtrangkhonghople then
         raise_application_error(-20108,'Ca benh da ket thuc. Khong the dieu phoi');
@@ -427,6 +448,7 @@ begin
         WHERE MACA = DPMaCa AND MATHIETBI = DPMaThietBi AND NGAYDIEUPHOI = TO_TIMESTAMP (DPDieuPhoi , 'DD/MM/YYYY HH24:MI:SS');
     changedrows := SQL%ROWCOUNT;
     UPDATE THIETBIYTE SET SLCONLAI = SLCONLAI + v_soluong WHERE MATHIETBI = DPMaThietBi AND LOAISD = 'Tai su dung';
+    commit;
 end;
 /
 -- 22
@@ -460,6 +482,7 @@ begin
     changedrows := SQL%ROWCOUNT;
     UPDATE THIETBIYTE SET SLCONLAI = SLCONLAI - DPSoLuong + v_sltruoc WHERE MATHIETBI = DPMaThietBi;
     UPDATE THIETBIYTE SET SLTONG = SLCONLAI WHERE MATHIETBI = DPMaThietBi AND LOAISD = '1 lan';
+    commit;
 exception
     when no_data_found then
         raise_application_error(-20137, 'Khong ton tai dieu phoi nao voi ma ca, ma thiet bi, thoi diem tren');
@@ -495,6 +518,7 @@ begin
     END IF;
     INSERT INTO PHONGBENH VALUES (PHMaPhong, PHLoai, PHToa, PHLau, PHSucChua, PHSucChua - func_phongbenh_tinhsisophong(PHMaPhong), PHGia1Ngay);
     changedrows := SQL%ROWCOUNT;
+    commit;
 exception
     when succhuakhongdu then
         raise_application_error(-20130,'Phong co suc chua khong hop le');
@@ -509,6 +533,7 @@ as
 begin
     DELETE FROM PHONGBENH 
         WHERE MAPHONG = PHMaPhong;
+    commit;
     changedrows := SQL%ROWCOUNT;
 end;
 /
@@ -534,7 +559,7 @@ begin
     UPDATE PHONGBENH 
         SET TOA = PHToa, LAU = PHLau, SUCCHUA = PHSucChua, LOAI = PHLoai, CONTRONG = PHSucChua - (func_phongbenh_tinhsisophong(PHMaPhong)), GIA1NGAY = PHGia1Ngay
         WHERE MAPHONG = PHMaPhong;
-   
+   commit;
     changedrows := SQL%ROWCOUNT;
 
 exception
@@ -562,6 +587,7 @@ as
 begin
     INSERT INTO TAIKHOAN VALUES (TKTenDangNhap, TKMatKhau);
     changedrows := SQL%ROWCOUNT;
+    commit;
 end;
 /
 -- 29
@@ -574,6 +600,7 @@ begin
     DELETE FROM TAIKHOAN 
         WHERE TENDANGNHAP = TKTenDangNhap;
     changedrows := SQL%ROWCOUNT;
+    commit;
 end;
 /
 -- 30
@@ -590,6 +617,7 @@ begin
         SET MATKHAU = TKMatKhau
         WHERE TENDANGNHAP = TKTenDangNhap;
     changedrows := SQL%ROWCOUNT;
+    commit;
 exception
     when no_data_found then
         raise_application_error(-20138, 'Khong ton tai tai khoan nao voi ten dang nhap tren');
@@ -603,6 +631,7 @@ as
 begin
    UPDATE THIETBIYTE SET SLCONLAI = SLTONG - func_thietbiyte_tinhsothietbidieuphoi(MATHIETBI) WHERE LOAISD = 'Tai su dung';
     UPDATE THIETBIYTE SET SLCONLAI = SLTONG WHERE LOAISD = '1 lan';
+    commit;
     OPEN p_result FOR SELECT * FROM THIETBIYTE ORDER BY MATHIETBI ASC;
 end;
 /
@@ -629,6 +658,7 @@ begin
         INSERT INTO THIETBIYTE VALUES (TBMaThietBi, TBTenThietBi, TBLoaiSD, TBCongDung, TBSLTong, TBSLTong, TBGia);
         changedrows := SQL%ROWCOUNT;
     END IF;
+    commit;
 exception    
     when khongdusoluong then
         raise_application_error (-20129,'Thiet bi khong du so luong');
@@ -644,6 +674,7 @@ begin
     DELETE FROM THIETBIYTE 
         WHERE MATHIETBI = TBMaThietBi;
     changedrows := SQL%ROWCOUNT;
+    commit;
 end;
 /
 -- 34
@@ -671,7 +702,7 @@ begin
         WHERE MATHIETBI = TBMaThietBi;
     changedrows := SQL%ROWCOUNT;
      UPDATE THIETBIYTE SET SLCONLAI = SLCONLAI + func_thietbiyte_tinhsothietbidieuphoi(TBMaThietBi) WHERE MATHIETBI = TBMaThietBi AND LOAISD = '1 lan';
-
+    commit;
 exception
     when no_data_found then
         raise_application_error(-20140, 'Khong ton tai thiet bi y te nao voi ma tren');
@@ -712,12 +743,19 @@ as
     ngaydaketthuc EXCEPTION;
     v_ngaychuyengannhat CABENH.NGAYCHUYENGANNHAT%TYPE;
     giathuephong PHONGBENH.GIA1NGAY%TYPE;
+    v_mahd HOADONVIENPHI.MAHD%TYPE;
 begin
     SELECT MACA INTO v_maca FROM CABENH WHERE MACA = CBMaCa AND MABS = BSMaBS;
 
     SELECT TINHTRANG INTO v_tinhtrangtruoc FROM CABENH WHERE MACA = CBMaCa;
     IF v_tinhtrangtruoc = 'Da ket thuc' THEN
         RAISE cadaketthuc;
+    END IF;
+    
+        -- Tinh hoa don khi vua ket thuc --
+    SELECT MAHD INTO v_mahd FROM HOADONVIENPHI WHERE MACA = CBMaCa AND ROWNUM = 1;
+    IF v_tinhtrangtruoc <> 'Da ket thuc' AND CBTinhTrang = 'Da ket thuc' THEN
+        proc_hoadonvienphi_tinhhoadon(v_mahd, CBMaCa);
     END IF;
     
     IF(TO_TIMESTAMP(CBKetThuc,'DD/MM/YYYY HH24:MI:SS') < CURRENT_TIMESTAMP) THEN
@@ -759,7 +797,7 @@ begin
     END IF;
 
     UPDATE THIETBIYTE SET SLCONLAI = SLTONG - func_thietbiyte_tinhsothietbidieuphoi(MATHIETBI) WHERE LOAISD = 'Tai su dung';
-    
+    commit;
 exception
     when no_data_found then
         raise_application_error(-20141, 'Khong ton tai ca benh nao voi ma tren ung voi ma bac si');
@@ -819,7 +857,7 @@ begin
     changedrows := SQL%ROWCOUNT;
     UPDATE THIETBIYTE SET SLCONLAI = (SLCONLAI - DPSoLuong) WHERE MATHIETBI = DPMaThietBi;
     UPDATE THIETBIYTE SET SLTONG = SLCONLAI WHERE MATHIETBI = DPMaThietBi AND LOAISD = '1 lan';
-    
+    commit;
 exception
     when tinhtrangkhonghople then
         raise_application_error(-20119,'Ca benh da ket thuc. Khong the dieu phoi');
@@ -867,7 +905,7 @@ begin
     changedrows := SQL%ROWCOUNT;
     UPDATE THIETBIYTE SET SLCONLAI = SLCONLAI - DPSoLuong + v_sltruoc WHERE MATHIETBI = DPMaThietBi;
     UPDATE THIETBIYTE SET SLTONG = SLCONLAI WHERE MATHIETBI = DPMaThietBi AND LOAISD = '1 lan';
-
+    commit;
 exception
     when no_data_found then
         raise_application_error(-20142, 'Khong ton tai dieu phoi nao voi ma ca, ma thiet bi, thoi diem tren');
@@ -963,6 +1001,7 @@ as
 begin
     INSERT INTO THUOC VALUES (THMaThuoc, THTenThuoc, THCongDung, THSLConLai, THGia);
     changedrows := SQL%ROWCOUNT;
+    commit;
 end;
 /
 -- 49
@@ -975,6 +1014,7 @@ begin
     DELETE FROM THUOC 
         WHERE MATHUOC = THMaThuoc;
     changedrows := SQL%ROWCOUNT;
+    commit;
 end;
 /
 -- 50
@@ -995,7 +1035,7 @@ begin
         SET TENTHUOC = THTenThuoc, CONGDUNG = THCongDung, SLCONLAI = THSLConLai, GIA = THGia
         WHERE MATHUOC = THMaThuoc;
     changedrows := SQL%ROWCOUNT;
-
+    commit;
 exception
     when no_data_found then
         raise_application_error(-20145, 'Khong ton tai thuoc nao voi ma tren');
@@ -1018,9 +1058,21 @@ create or replace procedure proc_kethuoc_them1kethuoc (
                                                     changedrows OUT INT
                                                     )
 as
+    sltoida THUOC.SLCONLAI%TYPE;
+    khongdusl EXCEPTION;
 begin
+    SELECT SLCONLAI INTO sltoida FROM THUOC WHERE MATHUOC = KTMaThuoc;
+    IF (KTSL > sltoida) THEN
+        RAISE khongdusl;
+    END IF;
     INSERT INTO KETHUOC VALUES (KTMaCa, KTMaThuoc, TO_TIMESTAMP(KTNgayKe,'DD/MM/YYYY HH24:MI:SS'), KTSL);
     changedrows := SQL%ROWCOUNT;
+    
+    UPDATE THUOC SET SLCONLAI = SLCONLAI - KTSL WHERE MATHUOC = KTMaThuoc;
+    commit;
+exception
+    when khongdusl then
+        raise_application_error (-20151,'Khong du so luong thuoc');
 end;
 /
 -- 53
@@ -1035,6 +1087,7 @@ begin
     DELETE FROM KETHUOC 
         WHERE MACA = KTMaCa AND MATHUOC = KTMaThuoc AND NGAYKE = TO_TIMESTAMP(KTNgayKe,'DD/MM/YYYY HH24:MI:SS');
     changedrows := SQL%ROWCOUNT;
+    commit;
 end;
 /
 -- 54
@@ -1054,7 +1107,7 @@ begin
         SET SL = KTSL
         WHERE MACA = KTMaCa AND MATHUOC = KTMaThuoc AND NGAYKE = TO_TIMESTAMP(KTNgayKe,'DD/MM/YYYY HH24:MI:SS'); 
     changedrows := SQL%ROWCOUNT;
-
+    commit;
 exception
     when no_data_found then
         raise_application_error(-20146, 'Khong ton tai don ke thuoc nao voi ma tren');
@@ -1065,7 +1118,7 @@ end;
 create or replace procedure proc_hoadonvienphi_layhoadonvienphi (p_result OUT SYS_REFCURSOR)
 as
 begin
-    OPEN p_result FOR SELECT * FROM HOADONVIENPHI WHERE TONGTIEN > 0 ORDER BY MAHD DESC;
+    OPEN p_result FOR SELECT * FROM HOADONVIENPHI WHERE TONGTIEN > 0 ORDER BY TRANGTHAI, MAHD DESC;
 end;
 /
 -- 56
@@ -1080,6 +1133,7 @@ as
 begin
     INSERT INTO HOADONVIENPHI VALUES (HDMaHD, HDMaCa, TO_TIMESTAMP(HDNgayLap,'DD/MM/YYYY HH24:MI:SS'), 0, 0, 0, 0, HDGhiChu);
     changedrows := SQL%ROWCOUNT;
+    commit;
 end;
 /
 -- 57
@@ -1092,6 +1146,7 @@ begin
     DELETE FROM HOADONVIENPHI 
         WHERE MAHD = HDMaHD;
     changedrows := SQL%ROWCOUNT;
+    commit;
 end;
 /
 -- 58
@@ -1109,7 +1164,7 @@ begin
         SET GHICHU = HDGhiChu
         WHERE MAHD = HDMaHD;
     changedrows := SQL%ROWCOUNT;
-
+    commit;
 exception
     when no_data_found then
         raise_application_error(-20147, 'Khong ton tai hoa don nao voi ma tren');
@@ -1143,20 +1198,27 @@ begin
     
         SELECT SUM(KT.SL * TH.GIA) INTO v_tienthuoc FROM KETHUOC KT, THUOC TH
             WHERE KT.MACA = HDMaCa AND KT.MATHUOC = TH.MATHUOC;
+        IF (v_tienthuoc is null) THEN
+            v_tienthuoc := 0;
+        END IF;
     
         SELECT NGAYCHUYENGANNHAT INTO v_ngaychuyengannhat FROM CABENH WHERE MACA = HDMaCa;
         IF (v_maphong is not null) THEN
             SELECT GIA1NGAY INTO giathuephong FROM PHONGBENH WHERE MAPHONG = v_maphong;
             v_tienkham := v_tienkham + (giathuephong * (TRUNC(CURRENT_TIMESTAMP) - TRUNC(v_ngaychuyengannhat)));
         END IF;
+        IF (v_tienkham is null) THEN
+            v_tienkham := 0;
+        END IF;
     
         v_tienkham := v_tienkham + v_tienthietbi + v_tienbenh;
-        v_tongtien := v_tienkham + v_tienthuoc;
+        v_tongtien := v_tongtien + v_tienkham + v_tienthuoc;
         
         UPDATE HOADONVIENPHI
             SET TONGTIEN = v_tongtien, TIENTHUOC = v_tienthuoc, TIENKHAM = v_tienkham
             WHERE MAHD = HDMaHD;
     END IF;
+    commit;
 end;
 /
 -- 60
@@ -1173,7 +1235,7 @@ begin
         SET TRANGTHAI = 1
         WHERE MAHD = HDMaHD;
     changedrows := SQL%ROWCOUNT;
-
+    commit;
 exception
     when no_data_found then
         raise_application_error(-20148, 'Khong ton tai hoa don nao voi ma tren');
@@ -1183,8 +1245,10 @@ end;
 create or replace procedure proc_hoadonvienphi_layhoadonvienphi_theobenhnhan (BNMaBN BENHNHAN.MABN%TYPE, p_result OUT SYS_REFCURSOR)
 as
 begin
-    OPEN p_result FOR SELECT HD.* FROM HOADONVIENPHI HD, CABENH CB 
-        WHERE HD.TONGTIEN > 0 AND HD.MACA = CB.MACA AND CB.MABN = BNMaBN
+    OPEN p_result FOR SELECT HD.*, CB.NGAYBATDAU, BN.HOTEN, BN.GIOITINH, 
+        (extract(year from (CURRENT_DATE)) - extract( year from (BN.NGAYSINH))) AS TUOI, BN.NOIOHIENTAI, BE.TENKHOA
+        FROM HOADONVIENPHI HD, CABENH CB , BENHNHAN BN, BENH BE
+        WHERE HD.TONGTIEN > 0 AND HD.MACA = CB.MACA AND CB.MABN = BNMaBN AND BN.MABN = BNMaBN AND CB.MABENH = BE.MABENH
         ORDER BY HD.MAHD DESC;
 end;
 /
@@ -1205,9 +1269,17 @@ create or replace procedure proc_lichhenkham_them1lichhenkham (
                                                     changedrows OUT INT
                                                     )
 as
+    ngaykhonghople EXCEPTION;
 begin
+    IF (TO_TIMESTAMP(LHNgayDuKien,'DD/MM/YYYY HH24:MI:SS') < CURRENT_TIMESTAMP) THEN
+        RAISE ngaykhonghople;
+    END IF;
     INSERT INTO LICHHENKHAM VALUES (LHMaLich, LHMaBN, '', TO_TIMESTAMP(LHNgayDuKien,'DD/MM/YYYY HH24:MI:SS'), LHNhuCauKham, 0, 0);
     changedrows := SQL%ROWCOUNT;
+    commit;
+exception
+    when ngaykhonghople then
+        raise_application_error(-20151, 'Ngay du kien kham phai lon hon hien tai');
 end;
 /
 -- 64
@@ -1220,6 +1292,7 @@ begin
     DELETE FROM LICHHENKHAM
         WHERE MALICH = LHMaLich;
     changedrows := SQL%ROWCOUNT;
+    commit;
 end;
 /
 -- 65
@@ -1238,6 +1311,7 @@ begin
         SET NGAYDUKIEN = TO_TIMESTAMP(LHNgayDuKien,'DD/MM/YYYY HH24:MI:SS'), NHUCAUKHAM = LHNhuCauKham
         WHERE MALICH = LHMaLich;
     changedrows := SQL%ROWCOUNT;
+    commit;
 
 exception
     when no_data_found then
@@ -1248,35 +1322,44 @@ end;
 create or replace procedure proc_lichhenkham_qlxacnhan (
                                                         LHMaLich LICHHENKHAM.MALICH%TYPE,
                                                         LHQLXacNhan LICHHENKHAM.QLXACNHAN%TYPE,
+                                                        LHMaBS LICHHENKHAM.MABS%TYPE,
                                                         changedrows OUT INT
                                                         )
 as
+    thieuMaBS EXCEPTION;
 begin
+    IF (LHQLXacNhan = 1 AND (LHMaBS is null OR LHMaBS = '')) THEN
+        RAISE thieuMaBS;
+    END IF;
     UPDATE LICHHENKHAM
-        SET QLXACNHAN = LHQLXacNhan
+        SET QLXACNHAN = LHQLXacNhan, MABS = LHMaBS
         WHERE MALICH = LHMaLich;
     changedrows := SQL%ROWCOUNT;
+    commit;
+exception
+     when thieuMaBS then
+        raise_application_error(-20150, 'Lich khong the xac nhan khi thieu Ma Bac Si');
 end;
 /
 -- 67
 create or replace procedure proc_lichhenkham_bndaxem (
-                                                        LHMaLich LICHHENKHAM.MALICH%TYPE,
                                                         changedrows OUT INT
                                                         )
 as
 begin
     UPDATE LICHHENKHAM
         SET BNXACNHAN = 1
-        WHERE MALICH = LHMaLich;
+        WHERE QLXACNHAN > 0;
     changedrows := SQL%ROWCOUNT;
+    commit;
 end;
 /
 -- 68
 create or replace procedure proc_lichhenkham_laylichhenkham_theobenhnhan (BNMaBN BENHNHAN.MABN%TYPE, p_result OUT SYS_REFCURSOR)
 as
 begin
-    OPEN p_result FOR SELECT * FROM LICHHENKHAM
-        WHERE MABN = BNMaBN
+    OPEN p_result FOR SELECT LH.*, BS.HOTEN FROM LICHHENKHAM LH LEFT JOIN BACSI BS ON BS.MABS = LH.MABS
+        WHERE LH.MABN = BNMaBN
         ORDER BY MALICH DESC;
 end;
 /
@@ -1284,9 +1367,169 @@ end;
 create or replace procedure proc_lichhenkham_laylichhenkham_theobacsi (BSMaBS BACSI.MABS%TYPE, p_result OUT SYS_REFCURSOR)
 as
 begin
-    OPEN p_result FOR SELECT * FROM LICHHENKHAM
-        WHERE MABS = BSMaBS
+    OPEN p_result FOR SELECT MALICH, MABN, NGAYDUKIEN, NHUCAUKHAM FROM LICHHENKHAM
+        WHERE MABS = BSMaBS AND NGAYDUKIEN >= CURRENT_TIMESTAMP
         ORDER BY MALICH DESC;
 end;
 /
 ----------------------------------------------                                       
+-- 70
+create or replace procedure proc_kethuoc_laykethuocchitiet (p_result OUT SYS_REFCURSOR)
+as
+begin
+    OPEN p_result FOR SELECT KT.MACA, BN.HOTEN, BS.HOTEN, KT.MATHUOC, TH.TENTHUOC, KT.NGAYKE, KT.SL FROM KETHUOC KT, CABENH CB, BACSI BS, BENHNHAN BN, THUOC TH
+                        WHERE KT.MACA = CB.MACA AND CB.MABS = BS.MABS AND CB.MABN = BN.MABN AND KT.MATHUOC = TH.MATHUOC
+                        ORDER BY KT.NGAYKE DESC;
+end;
+/
+-- 71
+create or replace procedure proc_lichhenkham_laylichhenkham_quanly (p_result OUT SYS_REFCURSOR)
+as
+begin
+    OPEN p_result FOR SELECT LH.MALICH, LH.MABN, LH.MABS, BS.HOTEN, LH.NGAYDUKIEN, LH.NHUCAUKHAM FROM LICHHENKHAM LH, BACSI BS
+                        WHERE LH.MABS = BS.MABS AND LH.QLXACNHAN = 1
+                        ORDER BY LH.MALICH DESC;
+end;
+/
+-- 72
+create or replace procedure proc_kethuoc_laykethuoc_theoca (CBMaCa CABENH.MACA%TYPE, p_result OUT SYS_REFCURSOR)
+as
+begin
+    OPEN p_result FOR SELECT TH.TENTHUOC, KT.SL FROM KETHUOC KT, THUOC TH
+        WHERE MACA = CBMaCa AND TH.MATHUOC = KT.MATHUOC
+        ORDER BY KT.NGAYKE DESC;
+end;
+/
+-- 73
+create or replace procedure proc_kethuoc_laykethuoc_theobs (BSMaBS BACSI.MABS%TYPE, p_result OUT SYS_REFCURSOR)
+as
+begin
+    OPEN p_result FOR SELECT KT.MACA, KT.MATHUOC, TH.TENTHUOC, KT.NGAYKE, KT.SL FROM KETHUOC KT, CABENH CB, THUOC TH
+        WHERE KT.MACA = CB.MACA AND CB.MABS = BSMaBS AND KT.MATHUOC = TH.MATHUOC
+        ORDER BY KT.MACA ASC, KT.NGAYKE DESC;
+end;
+/
+-------------------------
+-- 74
+create or replace procedure proc_thongke_laydoanhthu (nam number, thang number, p_result OUT SYS_REFCURSOR)
+as
+begin
+    IF (nam = 0 AND thang = 0) THEN
+        OPEN p_result FOR SELECT namlap, SUM(TONGTIEN) AS TONG FROM (
+            SELECT (extract(year from NGAYLAP)) AS namlap, TONGTIEN
+            FROM HOADONVIENPHI
+            WHERE TRANGTHAI = 1 ) A
+        GROUP BY namlap
+        ORDER BY namlap ASC;
+    ELSIF (nam = 0) THEN
+        OPEN p_result FOR SELECT namlap, SUM(TONGTIEN) AS TONG FROM (
+            SELECT (extract(year from NGAYLAP)) AS namlap, TONGTIEN
+            FROM HOADONVIENPHI
+            WHERE TRANGTHAI = 1 AND (extract (month from NGAYLAP)) = thang) A
+        GROUP BY namlap
+        ORDER BY namlap ASC;
+    ELSIF (thang = 0) THEN
+        OPEN p_result FOR SELECT thanglap, SUM(TONGTIEN) AS TONG FROM (
+            SELECT (extract (month from NGAYLAP)) AS thanglap, TONGTIEN
+            FROM HOADONVIENPHI
+            WHERE TRANGTHAI = 1 AND (extract (year from NGAYLAP)) = nam) A
+        GROUP BY thanglap
+        ORDER BY thanglap ASC;
+    ELSE
+        OPEN p_result FOR SELECT ngaylap, SUM(TONGTIEN) AS TONG FROM (
+            SELECT (extract(day from NGAYLAP)) AS ngaylap, TONGTIEN
+            FROM HOADONVIENPHI
+            WHERE TRANGTHAI = 1 AND (extract (year from NGAYLAP)) = nam AND (extract (month from NGAYLAP)) = thang) A
+        GROUP BY ngaylap
+        ORDER BY ngaylap ASC;
+    END IF;
+end;
+/
+-- 75
+create or replace procedure proc_thongke_layluongcabenh (nam number, thang number, p_result OUT SYS_REFCURSOR)
+as
+begin
+    IF (nam = 0 AND thang = 0) THEN
+        OPEN p_result FOR SELECT nambd, COUNT(MACA) AS TONG FROM (
+            SELECT (extract(year from NGAYBATDAU)) AS nambd, MACA
+            FROM CABENH) A
+        GROUP BY nambd
+        ORDER BY nambd ASC;
+    ELSIF (nam = 0) THEN
+        OPEN p_result FOR SELECT nambd, COUNT(MACA) AS TONG FROM (
+            SELECT (extract(year from NGAYBATDAU)) AS nambd, MACA
+            FROM CABENH
+            WHERE (extract (month from NGAYBATDAU)) = thang) A
+        GROUP BY nambd
+        ORDER BY nambd ASC;
+    ELSIF (thang = 0) THEN
+        OPEN p_result FOR SELECT thangbd, COUNT(MACA) AS TONG FROM (
+            SELECT (extract (month from NGAYBATDAU)) AS thangbd, MACA
+            FROM CABENH
+            WHERE (extract (year from NGAYBATDAU)) = nam) A
+        GROUP BY thangbd
+        ORDER BY thangbd ASC;
+    ELSE
+        OPEN p_result FOR SELECT ngaybd, COUNT(MACA) AS TONG FROM (
+            SELECT (extract(day from NGAYBATDAU)) AS ngaybd, MACA
+            FROM CABENH
+            WHERE (extract (year from NGAYBATDAU)) = nam AND (extract (month from NGAYBATDAU)) = thang) A
+        GROUP BY ngaybd
+        ORDER BY ngaybd ASC;
+    END IF;
+end;
+/
+-- 76
+create or replace procedure proc_thongke_laytop5benh (nam number, thang number, p_result OUT SYS_REFCURSOR)
+as
+begin
+    IF (thang = 0) THEN
+        OPEN p_result FOR SELECT * FROM (SELECT tenbenh, COUNT(tenbenh) AS TONG FROM (
+            SELECT BE.TENBENH
+            FROM CABENH CB, BENH BE
+            WHERE (extract (year from NGAYBATDAU)) = nam AND CB.MABENH = BE.MABENH) A
+        GROUP BY tenbenh
+        ORDER BY COUNT(tenbenh) DESC) WHERE ROWNUM <= 5 ORDER BY tenbenh ASC;
+    ELSE
+        OPEN p_result FOR SELECT * FROM (SELECT tenbenh, COUNT(tenbenh) AS TONG FROM (
+            SELECT BE.TENBENH
+            FROM CABENH CB, BENH BE
+            WHERE (extract (year from NGAYBATDAU)) = nam AND (extract (month from NGAYBATDAU)) = thang AND CB.MABENH = BE.MABENH) A
+        GROUP BY tenbenh
+        ORDER BY COUNT(tenbenh) DESC) WHERE ROWNUM <= 5 ORDER BY tenbenh ASC;
+    END IF;
+end;
+/
+-- 77
+create or replace procedure proc_thongke_laytop5no (nam number, thang number, p_result OUT SYS_REFCURSOR)
+as
+begin
+    IF (thang = 0) THEN
+        OPEN p_result FOR SELECT HOTEN, TONG FROM (SELECT MABN, HOTEN, SUM(TONGTIEN) AS TONG FROM (
+            SELECT CB.MABN, BN.HOTEN, HD.TONGTIEN
+            FROM HOADONVIENPHI HD, CABENH CB, BENHNHAN BN
+            WHERE (extract (year from NGAYLAP)) = nam AND CB.MACA = HD.MACA AND CB.MABN = BN.MABN
+                    AND HD.TONGTIEN > 0 AND HD.TRANGTHAI = 0) A
+        GROUP BY MABN, HOTEN
+        ORDER BY SUM(TONGTIEN) DESC) WHERE ROWNUM <= 5 ORDER BY HOTEN ASC;
+    ELSE
+        OPEN p_result FOR SELECT HOTEN, TONG FROM (SELECT MABN, HOTEN, SUM(TONGTIEN) AS TONG FROM (
+            SELECT CB.MABN, BN.HOTEN, HD.TONGTIEN
+            FROM HOADONVIENPHI HD, CABENH CB, BENHNHAN BN
+            WHERE (extract (year from NGAYLAP)) = nam AND (extract (month from NGAYLAP)) = thang
+                AND CB.MACA = HD.MACA AND CB.MABN = BN.MABN AND HD.TONGTIEN > 0 AND HD.TRANGTHAI = 0) A
+        GROUP BY MABN, HOTEN
+        ORDER BY SUM(TONGTIEN) DESC) WHERE ROWNUM <= 5 ORDER BY HOTEN ASC;
+    END IF;
+end;
+/
+-- 78
+create or replace procedure proc_thongke_laynam (p_result OUT SYS_REFCURSOR)
+as
+begin
+       OPEN p_result FOR SELECT nambd FROM (
+            SELECT DISTINCT(extract(year from NGAYBATDAU)) AS nambd
+            FROM CABENH) A
+        ORDER BY nambd DESC;
+end;
+/
