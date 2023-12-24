@@ -17,37 +17,34 @@ import Connection.DatabaseConnector;
 import QuanLy.QLHome;
 
 public class DangNhap implements ActionListener, ComponentListener{
+	private JFrame frame;
+    // PIM, we care your health
+	private JPanel panelTitle;
+    // Content panels
+	private JPanel panelContent;
+	private PanelRound panelContentInner;
+    // 2 inputs
+	private TextFieldRound txtFieldAccName;
+	private TextFieldRound txtFieldPass; // show password input field
+	private PasswordFieldRound passFieldPass; // hide password input field
+    // Btns
+	private ButtonRound btnSignIn;
+	private ButtonRound btnView;
+	private ButtonRound btnHide;
+	// labels
+	private JLabel labelTitleSymbol; 
+	private JLabel labelTitleName;
+	private JLabel labelTitleSlogan;
+	private JLabel labelContact; // 1800 1091
 	
 	private static DatabaseConnector database;
 	
-	private JFrame frame;
-	private JPanel panelTitle;
-	private JPanel panelContent;
-	private PanelRound panelContentInner;
-	
-	private ButtonRound buttonDangNhap;
-	
-	private TextFieldRound textfieldTenDangNhap;
-	private TextFieldRound textfieldMatKhau;
-	
-	private PasswordFieldRound passwordfieldMatKhau;
-	
-	private ButtonRound buttonView;
-	private ButtonRound buttonHide;
-	
-	private JLabel labeltitleSymbol;
-	private JLabel labeltitleName;
-	private JLabel labeltitleSlogan;
-	private JLabel labelContact;
-	
-	
 	public DangNhap(){
-		
 		database = new DatabaseConnector();
 		frame = new JFrame();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(800,450);
-		frame.setLocationRelativeTo(null);
+		frame.setLocationRelativeTo(null); // center the window on the screen
 		frame.getContentPane().setBackground(Color.decode("#d6e7ef"));
 		frame.getContentPane().setLayout(new BorderLayout());
 		frame.addComponentListener(this);
@@ -69,88 +66,91 @@ public class DangNhap implements ActionListener, ComponentListener{
 		panelContentInner.setRoundAllCorner(20);
 		panelContentInner.setLayout(null);
 		
-		//labeltitleSymbol = new JLabel(new ImageIcon("PIM_ver4\\picture\\drug.png"));
-		labeltitleSymbol = new JLabel(new ImageIcon(getClass().getClassLoader().getResource("drug.png")));
-		labeltitleSymbol.setBounds(10, 0, 50, 50);
-		panelTitle.add(labeltitleSymbol);
+//		labelTitleSymbol = new JLabel(new ImageIcon("drug.png"));
+		labelTitleSymbol = new JLabel(new ImageIcon(getClass().getClassLoader().getResource("drug.png")));
+//		labelTitleSymbol = new JLabel();
+ 		labelTitleSymbol.setBounds(10, 0, 50, 50);
+		panelTitle.add(labelTitleSymbol);
+	
+		labelTitleName = new JLabel("PIM");
+		labelTitleName.setForeground(Color.decode("#28526a"));
+		labelTitleName.setBounds(70, 5, 100, 20);
+		labelTitleName.setFont(new Font("Bevan", Font.BOLD, 20));
+		panelTitle.add(labelTitleName);
 		
-		labeltitleName = new JLabel("PIM");
-		labeltitleName.setForeground(Color.decode("#28526a"));
-		labeltitleName.setBounds(70, 5, 100, 20);
-		labeltitleName.setFont(new Font("Bevan", Font.BOLD, 20));
-		panelTitle.add(labeltitleName);
+		labelTitleSlogan = new JLabel("We care your health");
+		labelTitleSlogan.setForeground(Color.decode("#28526a"));
+		labelTitleSlogan.setBounds(70, 25, 300, 20);
+		labelTitleSlogan.setFont(new Font("Bevan", Font.PLAIN, 14));
+		panelTitle.add(labelTitleSlogan);
 		
-		labeltitleSlogan = new JLabel("We care your health");
-		labeltitleSlogan.setForeground(Color.decode("#28526a"));
-		labeltitleSlogan.setBounds(70, 25, 300, 20);
-		labeltitleSlogan.setFont(new Font("Bevan", Font.PLAIN, 14));
-		panelTitle.add(labeltitleSlogan);
+		JLabel labelAccName = new JLabel("Ten Dang Nhap");
+		labelAccName.setFont(new Font("Bevan", Font.PLAIN, 12));
+		labelAccName.setBounds(130, 30, 200, 20);
+		labelAccName.setHorizontalAlignment(SwingConstants.LEFT);
+		panelContentInner.add(labelAccName);
 		
-		JLabel labelTenDangNhap = new JLabel("Ten Dang Nhap");
-		labelTenDangNhap.setFont(new Font("Bevan", Font.PLAIN, 12));
-		labelTenDangNhap.setBounds(130, 30, 200, 20);
-		labelTenDangNhap.setHorizontalAlignment(SwingConstants.LEFT);
-		panelContentInner.add(labelTenDangNhap);
+		txtFieldAccName = new TextFieldRound();
+		txtFieldAccName.setBounds(130, 55, 220, 20);
+		txtFieldAccName.setColumns(10);
+		txtFieldAccName.setRoundAllCorner(10);
+		panelContentInner.add(txtFieldAccName);
 		
-		textfieldTenDangNhap = new TextFieldRound();
-		textfieldTenDangNhap.setBounds(130, 55, 220, 20);
-		textfieldTenDangNhap.setColumns(10);
-		textfieldTenDangNhap.setRoundAllCorner(10);
-		panelContentInner.add(textfieldTenDangNhap);
+		JLabel labelPass = new JLabel("Mat Khau");
+		labelPass.setFont(new Font("Bevan", Font.PLAIN, 12));
+		labelPass.setBounds(130, 80, 115, 20);
+		labelPass.setHorizontalAlignment(SwingConstants.LEFT);
+		panelContentInner.add(labelPass);
 		
-		JLabel labelMatKhau = new JLabel("Mat Khau");
-		labelMatKhau.setFont(new Font("Bevan", Font.PLAIN, 12));
-		labelMatKhau.setBounds(130, 80, 115, 20);
-		labelMatKhau.setHorizontalAlignment(SwingConstants.LEFT);
-		panelContentInner.add(labelMatKhau);
+		txtFieldPass = new TextFieldRound();
+		txtFieldPass.setBounds(130, 105, 220, 20);
+		txtFieldPass.setFont(new Font("Bevan", Font.PLAIN, 12));
+		txtFieldPass.setColumns(10);
+		txtFieldPass.addActionListener(this);
+		txtFieldPass.setRoundAllCorner(10);
+		panelContentInner.add(txtFieldPass);
 		
-		textfieldMatKhau = new TextFieldRound();
-		textfieldMatKhau.setBounds(130, 105, 220, 20);
-		textfieldMatKhau.setFont(new Font("Bevan", Font.PLAIN, 12));
-		textfieldMatKhau.setColumns(10);
-		textfieldMatKhau.addActionListener(this);
-		textfieldMatKhau.setRoundAllCorner(10);
-		panelContentInner.add(textfieldMatKhau);
+		passFieldPass = new PasswordFieldRound();
+		passFieldPass.setBounds(130, 105, 220, 20);
+		passFieldPass.setFont(new Font("Bevan", Font.PLAIN, 12));
+		passFieldPass.setColumns(10);
+		passFieldPass.addActionListener(this);
+		passFieldPass.setRoundAllCorner(10);
+		panelContentInner.add(passFieldPass);
 		
-		passwordfieldMatKhau = new PasswordFieldRound();
-		passwordfieldMatKhau.setBounds(130, 105, 220, 20);
-		passwordfieldMatKhau.setFont(new Font("Bevan", Font.PLAIN, 12));
-		passwordfieldMatKhau.setColumns(10);
-		passwordfieldMatKhau.addActionListener(this);
-		passwordfieldMatKhau.setRoundAllCorner(10);
-		panelContentInner.add(passwordfieldMatKhau);
+		btnView = new ButtonRound();
+		//btnView.setIcon(new ImageIcon("view.png"));
+		btnView.setIcon(new ImageIcon(getClass().getClassLoader().getResource("view.png")));
+//		btnView.setIcon();
+		btnView.setBackground(Color.decode("#d6e7ef"));
+		btnView.addActionListener(this);
+		btnView.setBorderPainted(false);
+		btnView.setBounds(360, 102, 25, 25);
+		btnView.setRoundAllCorner(5);
+		panelContentInner.add(btnView);
+		btnView.setVisible(false);
 		
-		buttonView = new ButtonRound();
-		//buttonView.setIcon(new ImageIcon("PIM_ver4\\picture\\view.png"));
-		buttonView.setIcon(new ImageIcon(getClass().getClassLoader().getResource("view.png")));
-		buttonView.setBackground(Color.decode("#d6e7ef"));
-		buttonView.addActionListener(this);
-		buttonView.setBorderPainted(false);
-		buttonView.setBounds(360, 102, 25, 25);
-		buttonView.setRoundAllCorner(5);
-		panelContentInner.add(buttonView);
-		buttonView.setVisible(false);
+		btnHide = new ButtonRound();
+//		btnHide.setIcon(new ImageIcon("hide.png"));
+		btnHide.setIcon(new ImageIcon(getClass().getClassLoader().getResource("hide.png")));
+//		btnHide.setIcon();
+		btnHide.setBackground(Color.decode("#d6e7ef"));
+		btnHide.addActionListener(this);
+		btnHide.setBorderPainted(false);
+		btnHide.setBounds(360, 102, 25, 25);
+		btnHide.setRoundAllCorner(5);
+		panelContentInner.add(btnHide);
 		
-		buttonHide = new ButtonRound();
-		//buttonHide.setIcon(new ImageIcon("PIM_ver4\\picture\\hide.png"));
-		buttonHide.setIcon(new ImageIcon(getClass().getClassLoader().getResource("hide.png")));
-		buttonHide.setBackground(Color.decode("#d6e7ef"));
-		buttonHide.addActionListener(this);
-		buttonHide.setBorderPainted(false);
-		buttonHide.setBounds(360, 102, 25, 25);
-		buttonHide.setRoundAllCorner(5);
-		panelContentInner.add(buttonHide);
-		
-		buttonDangNhap = new ButtonRound();
-		buttonDangNhap.setText("Login");
-		buttonDangNhap.setForeground(Color.decode("#ffffff"));
-		buttonDangNhap.setBackground(Color.decode("#1b3954"));
-		buttonDangNhap.addActionListener(this);
-		buttonDangNhap.setFont(new Font("Bevan", Font.BOLD, 16));
-		buttonDangNhap.setBorderPainted(false);
-		buttonDangNhap.setBounds(190, 170, 115, 30);
-		buttonDangNhap.setRoundAllCorner(20);
-		panelContentInner.add(buttonDangNhap);
+		btnSignIn = new ButtonRound();
+		btnSignIn.setText("Login");
+		btnSignIn.setForeground(Color.decode("#ffffff"));
+		btnSignIn.setBackground(Color.decode("#1b3954"));
+		btnSignIn.addActionListener(this);
+		btnSignIn.setFont(new Font("Bevan", Font.BOLD, 16));
+		btnSignIn.setBorderPainted(false);
+		btnSignIn.setBounds(190, 170, 115, 30);
+		btnSignIn.setRoundAllCorner(20);
+		panelContentInner.add(btnSignIn);
 		
 		labelContact = new JLabel("Forgot your account? Contact us at 18001091");
 		labelContact.setFont(new Font("Bevan", Font.PLAIN, 14));
@@ -162,31 +162,27 @@ public class DangNhap implements ActionListener, ComponentListener{
 		panelContent.add(panelContentInner);
 		frame.setVisible(true);
 	}
-	
-
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
-		if (e.getSource() == buttonDangNhap) {
+		if (e.getSource() == btnSignIn) {
 			DangNhap();
 		}
-		if (e.getSource() == buttonView) {
-			textfieldMatKhau.setText(passwordfieldMatKhau.getText());
-			passwordfieldMatKhau.setVisible(false);
-			textfieldMatKhau.setVisible(true);
-			buttonHide.setVisible(true);
-			buttonView.setVisible(false);
+		if (e.getSource() == btnView) {
+			txtFieldPass.setText(passFieldPass.getText());
+			passFieldPass.setVisible(false);
+			txtFieldPass.setVisible(true);
+			btnHide.setVisible(true);
+			btnView.setVisible(false);
 		}
-		if (e.getSource() == buttonHide) {
-			passwordfieldMatKhau.setText(textfieldMatKhau.getText());
-			textfieldMatKhau.setVisible(false);
-			passwordfieldMatKhau.setVisible(true);
-			buttonView.setVisible(true);
-			buttonHide.setVisible(false);
+		if (e.getSource() == btnHide) {
+			passFieldPass.setText(txtFieldPass.getText());
+			txtFieldPass.setVisible(false);
+			passFieldPass.setVisible(true);
+			btnView.setVisible(true);
+			btnHide.setVisible(false);
 		}
 	}
-	
-
 	@Override
 	public void componentResized(ComponentEvent e) {
 		if (e.getSource() == frame) {
@@ -194,46 +190,38 @@ public class DangNhap implements ActionListener, ComponentListener{
 		}
 		
 	}
-
-
 	@Override
 	public void componentMoved(ComponentEvent e) {
 		// TODO Auto-generated method stub
 		
 	}
-
-
 	@Override
 	public void componentShown(ComponentEvent e) {
 		// TODO Auto-generated method stub
 		
 	}
-
-
 	@Override
 	public void componentHidden(ComponentEvent e) {
 		// TODO Auto-generated method stub
 		
 	}
-
-	
 	public void DangNhap() {
 		
-		String query = "SELECT * FROM TAIKHOAN WHERE TENDANGNHAP = '" + textfieldTenDangNhap.getText() +"'";
-		if (textfieldMatKhau.isVisible()) {
-			if(textfieldMatKhau.getText().equals("")) {
+		String query = "SELECT * FROM TAIKHOAN WHERE TENDANGNHAP = '" + txtFieldAccName.getText() +"'";
+		if (txtFieldPass.isVisible()) {
+			if(txtFieldPass.getText().equals("")) {
 				query += " AND MATKHAU IS NULL";
 			}
 			else {
-				query += " AND MATKHAU = '" + textfieldMatKhau.getText() + "'";
+				query += " AND MATKHAU = '" + txtFieldPass.getText() + "'";
 			}
 		}
-		else if (passwordfieldMatKhau.isVisible()){
-			if(passwordfieldMatKhau.getText().equals("")) {
+		else if (passFieldPass.isVisible()){
+			if(passFieldPass.getText().equals("")) {
 				query += " AND MATKHAU IS NULL";
 			}
 			else {
-				query += " AND MATKHAU = '" + passwordfieldMatKhau.getText() + "'";
+				query += " AND MATKHAU = '" + passFieldPass.getText() + "'";
 			}
 		}
 		System.out.println(query);
@@ -245,15 +233,15 @@ public class DangNhap implements ActionListener, ComponentListener{
 			
 			if (resultset.next())
 			{
-				if (textfieldTenDangNhap.getText().substring(0,2).equals("BN")) {
+				if (txtFieldAccName.getText().substring(0,2).equals("BN")) {
 					new BNHome(this);
 					frame.dispose();
 				}
-				else if (textfieldTenDangNhap.getText().substring(0,2).equals("BS")) {
+				else if (txtFieldAccName.getText().substring(0,2).equals("BS")) {
 					new BSHome(this);
 					frame.dispose();
 				}
-				else if (textfieldTenDangNhap.getText().substring(0,2).equals("QL")) {
+				else if (txtFieldAccName.getText().substring(0,2).equals("QL")) {
 					new QLHome(this);
 					frame.dispose();
 				}
@@ -266,9 +254,8 @@ public class DangNhap implements ActionListener, ComponentListener{
 			e.printStackTrace();
 		}
 	}
-	
 	public String getID() {
-		return textfieldTenDangNhap.getText();
+		return txtFieldAccName.getText();
 	}
 	/*public String getDatabaseURL() {
 		return DatabaseURL;
@@ -292,4 +279,3 @@ public class DangNhap implements ActionListener, ComponentListener{
 
 }
 	
-
